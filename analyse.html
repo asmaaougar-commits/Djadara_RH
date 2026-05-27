@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+{% block title %}Nouvelle Analyse — RecrutAI{% endblock %}
+{% block head %}
+<style>
+  .analyse-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    align-items: start;
+  }
+  @media (max-width: 768px) { .analyse-grid { grid-template-columns: 1fr; } }
+
+  .panel-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.75rem;
+    box-shadow: var(--shadow-sm);
+  }
+  .panel-card h3 { font-size: 1.1rem; font-weight: 600; color: var(--text); margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem; }
+
+  /* Style de la zone de Drag & Drop pour les CVs */
+  .drop-zone {
+    border: 2px dashed var(--border2);
+    border-radius: 8px;
+    padding: 2.5rem 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    background: var(--bg);
+    transition: all 0.15s ease-in-out;
+  }
+  .drop-zone:hover, .drop-zone.dragover {
+    border-color: var(--accent);
+    background: var(--accent-l);
+  }
+  .drop-zone .icon { font-size: 2.5rem; margin-bottom: 0.75rem; display: block; }
+  .drop-zone p { font-size: 0.9rem; color: var(--text); font-weight: 500; }
+  .drop-zone span { font-size: 0.8rem; color: var(--muted); display: block; margin-top: 0.25rem; }
+
+  /* Liste des fichiers sélectionnés */
+  .file-list {
+    margin-top: 1rem;
+    max-height: 150px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .file-item {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .file-item .file-name { color: var(--text); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 280px; }
+  .file-item .file-size { color: var(--muted); font-size: 0.75rem; }
+
+  /* Écran de chargement pendant l'extraction OCR et le matching Sklearn */
+  .loading-overlay {
+    display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(255, 255, 255, 0.85); z-index: 9999; align-items: center; justify-content: center;
+    flex-direction: column;
+  }
+  .spinner-ia {
+    width: 50px; height: 50px; border: 5px solid var(--accent-l); border-top: 5px solid var(--accent);
+    border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 1rem;
+  }
+  @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner-ia"></div>
+  <h3 style="font-weight: 700; color: var(--text);">Analyse IA en cours...</h3>
+  <p style="color: var(--muted); font-size: 0.9rem; text-align: center; max-width: 360px; margin-top: 0.25rem;">
+    Extraction du texte des PDF (OCR), calcul des fréquences TF-IDF et application de la similarité cosinus avec boost KNN.
+  </p>
+</div>
+
+<div class="analyse-wrap">
+  <div style="margin-bottom: 2rem;">
+    <h2 style="font-size: 1.5rem; font-weight: 700;">Lancer un matching intelligent</h2>
+    <p style="color: var(--muted); font-size: 0.9rem;">Créez ou sélectionnez une offre, importez les CV et laissez l'IA classer les meilleurs profils.</p>
+  </div>
+
+  <div class="analyse-grid">
+    
+    <div class="panel-card">
+      <h3><span>💼</span> Définir l'offre d'emploi</h3>
+      
+      <form action="/creer-offre" method="POST" style="margin-bottom: 1.5rem;">
+        <div class="field">
+          <label>Titre du poste</label>
+          <input type="text" name="titre" placeholder="Ex: Développeur Python Fullstack" required>
+        </div>
+        <div class="field">
+          <label>Compétences clés (séparées par des virgules)</label>
+          <input type="text" name="competences" placeholder="Ex: Python, Flask, PostgreSQL, Spacy, TF-IDF" required>
+        </div>
+        <div class="field">
+          <label>Niveau d'expérience</label>
+          <input type="text" name="experience" placeholder="Ex: Junior, 2 ans, Étudiant L3">
+        </div>
+        <div class="field">
+          <label>Description du poste (Optionnel)</label>
+          <textarea name="description" rows="3" placeholder="Détails de la mission..."></textarea>
+        </div>
+        <button type="submit" class="btn btn-ghost" style="width: 100%; border-color: var(--accent); color: var(--accent);">
+          Enregistrer cette offre d'emploi
+        </button>
+      </form>
+    </div>
+
+    <div class="panel-card">
+      <h3><span>📄</span> Importer et comparer les CV</h3>
+      
+      <form action="/match" method="POST" enctype="multipart/form-data" onsubmit="showLoading()">
+        
+        <div class="field">
+          <label>1. Choisir l'offre cible</label>
+          <select name="offre_id" required>
+            <option value="" disabled selected>-- Sélectionnez une offre enregistrée --</option>
+            {% for o in offres %}
+              <option value="{{ o.id }}">{{ o.titre }} ({{ o.competences }})</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="field">
+          <label>2. Déposer les fichiers PDF</label>
+          <input type="file" name="cv_files" id="cvFiles" accept=".pdf" multiple style="display: none;" onchange="handleFileSelect(this)">
+          
+          <div class="drop-zone" id="dropZone" onclick="document.getElementById('cvFiles').click()">
+            <span class="icon">📥</span>
+            <p>Glissez-déposez plusieurs CV ici</p>
+            <span>ou cliquez pour parcourir vos fichiers (PDF uniquement)</span>
+          </div>
+        </div>
+
+        <div class="file-list" id="fileList"></div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1.5rem; padding: 0.75rem;">
+          Lancer le Screening IA ✨
+        </button>
+      </form>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // Gestion visuelle du Drag & Drop
+  const dropZone = document.getElementById('dropZone');
+  
+  ['dragenter', 'dragover'].forEach(eventName => {
+    dropZone.addEventListener(eventName, (e) => {
+      e.preventDefault();
+      dropZone.classList.add('dragover');
+    }, false);
+  });
+
+  ['dragleave', 'drop'].forEach(eventName => {
+    dropZone.addEventListener(eventName, (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('dragover');
+    }, false);
+  });
+
+  dropZone.addEventListener('drop', (e) => {
+    const dt = e.dataTransfer;
+    const files = dt.files;
+    const fileInput = document.getElementById('cvFiles');
+    fileInput.files = files; // Assigne les fichiers glissés à l'input
+    handleFileSelect(fileInput);
+  });
+
+  // Affichage de la liste des fichiers sélectionnés
+  function handleFileSelect(input) {
+    const fileList = document.getElementById('fileList');
+    fileList.innerHTML = '';
+    
+    if (input.files.length > 0) {
+      for (let i = 0; i < input.files.length; i++) {
+        const file = input.files[i];
+        const sizeInKB = (file.size / 1024).toFixed(1);
+        
+        const item = document.createElement('div');
+        item.className = 'file-item';
+        item.innerHTML = `
+          <span class="file-name">${file.name}</span>
+          <span class="file-size">${sizeInKB} KB</span>
+        `;
+        fileList.appendChild(item);
+      }
+    }
+  }
+
+  // Déclenchement de l'overlay de chargement au submit
+  function showLoading() {
+    document.getElementById('loadingOverlay').style.display = 'flex';
+  }
+</script>
+{% endblock %}

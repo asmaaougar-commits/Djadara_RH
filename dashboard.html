@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+{% block title %}Tableau de bord — RecrutAI{% endblock %}
+{% block head %}
+<style>
+  .dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .welcome-msg h2 { font-size: 1.5rem; font-weight: 700; color: var(--text); }
+  .welcome-msg p { font-size: 0.9rem; color: var(--muted); margin-top: 0.25rem; }
+
+  /* Grille de statistiques rapides */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 2.5rem;
+  }
+  .stat-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  .stat-icon {
+    width: 48px; height: 48px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.4rem;
+  }
+  .stat-card:nth-child(1) .stat-icon { background: var(--accent-l); color: var(--accent); }
+  .stat-card:nth-child(2) .stat-icon { background: var(--green-l); color: var(--green); }
+  
+  .stat-info .stat-value { font-size: 1.6rem; font-weight: 700; color: var(--text); line-height: 1.2; }
+  .stat-info .stat-label { font-size: 0.85rem; color: var(--muted); font-weight: 500; }
+
+  /* Section de la liste des offres */
+  .section-title {
+    font-size: 1.1rem; font-weight: 600; color: var(--text); margin-bottom: 1rem;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+
+  .offers-card {
+    background: var(--white); border: 1px solid var(--border);
+    border-radius: 12px; box-shadow: var(--shadow-sm); overflow: hidden;
+  }
+
+  /* Tableaux des offres */
+  .offers-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem; }
+  .offers-table th { background: var(--bg); padding: 1rem; font-weight: 600; color: var(--muted); border-bottom: 1px solid var(--border); }
+  .offers-table td { padding: 1.25rem 1rem; border-bottom: 1px solid var(--border); color: var(--text); vertical-align: middle; }
+  .offers-table tr:last-child td { border-bottom: none; }
+  
+  .offer-title { font-weight: 600; color: var(--text); text-decoration: none; }
+  .offer-title:hover { color: var(--accent); }
+
+  .badge-skills {
+    display: inline-block; background: var(--bg); border: 1px solid var(--border);
+    padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.75rem; color: var(--muted);
+    max-width: 280px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  /* État vide si aucune offre n'existe encore */
+  .empty-state {
+    text-align: center; padding: 4rem 2rem; color: var(--muted);
+  }
+  .empty-state .icon { font-size: 3rem; margin-bottom: 1rem; }
+  .empty-state h3 { font-size: 1.2rem; font-weight: 600; color: var(--text); margin-bottom: 0.5rem; }
+  .empty-state p { font-size: 0.9rem; max-width: 340px; margin: 0 auto 1.5rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-wrap">
+  
+  <div class="dashboard-header">
+    <div class="welcome-msg">
+      <h2>Ravi de vous revoir, {{ session.get('nom', 'Recruteur') }} 👋</h2>
+      <p>Voici un aperçu de vos campagnes de recrutement en cours.</p>
+    </div>
+    <a href="/analyse" class="btn btn-primary">+ Nouvelle Analyse</a>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon">💼</div>
+      <div class="stat-info">
+        <div class="stat-value">{{ total_offres }}</div>
+        <div class="stat-label">Offres d'emploi créées</div>
+      </div>
+    </div>
+    
+    <div class="stat-card">
+      <div class="stat-icon">📄</div>
+      <div class="stat-info">
+        <div class="stat-value">{{ total_cvs }}</div>
+        <div class="stat-label">Total CVs traités par l'IA</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title">
+    <span>Vos offres d'emploi actives</span>
+  </div>
+
+  <div class="offers-card">
+    {% if offres %}
+      <table class="offers-table">
+        <thead>
+          <tr>
+            <th>Titre du poste</th>
+            <th>Compétences recherchées</th>
+            <th>Expérience requise</th>
+            <th>Date de création</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for o in offres %}
+            <tr>
+              <td>
+                <a href="/analyse" class="offer-title">{{ o.titre }}</a>
+              </td>
+              <td>
+                <span class="badge-skills" title="{{ o.competences }}">{{ o.competences }}</span>
+              </td>
+              <td>{{ o.experience if o.experience else 'Non spécifiée' }}</td>
+              <td style="color: var(--muted); font-size: 0.85rem;">
+                {{ o.created_at.strftime('%d/%m/%Y à %H:%M') if o.created_at else 'Récemment' }}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <div class="empty-state">
+        <div class="icon">🔍</div>
+        <h3>Aucune offre d'emploi pour le moment</h3>
+        <p>Pour lancer votre premier screening de CVs par l'Intelligence Artificielle, commencez par définir un profil de poste.</p>
+        <a href="/analyse" class="btn btn-primary" style="display: inline-block;">Déposer une offre d'emploi</a>
+      </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

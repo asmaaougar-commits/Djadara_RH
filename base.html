@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}RecrutAI — Screening & Matching de CVs{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:       #F4F7F6;
+      --white:    #ffffff;
+      --border:   #dbe4ef;
+      --border2:  #c4d2e4;
+      --accent:   #2563EB;
+      --accent-h: #1d4ed8;
+      --accent-l: #EFF6FF;
+      --text:     #0F172A;
+      --muted:    #4B6A8A;
+      --muted2:   #7A9ABB;
+      --green:    #059669;
+      --green-l:  #ECFDF5;
+      --red:      #DC2626;
+      --red-l:    #FEF2F2;
+      --amber:    #D97706;
+      --amber-l:  #FFFBEB;
+      --orange:   #EA580C;
+      --navy:     #1E293B;
+      --navy-l:   #F1F5F9;
+      --cyan:     #0EA5E9;
+      --radius:   10px;
+      --shadow:   0 1px 3px 0 rgba(30,41,59,0.07), 0 1px 2px 0 rgba(30,41,59,0.04);
+      --shadow-md:0 4px 6px -1px rgba(30,41,59,0.10), 0 2px 4px -1px rgba(30,41,59,0.06);
+      --shadow-sm:0 1px 4px 0 rgba(30,41,59,0.08);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; font-size: .92rem; }
+    
+    nav {
+      background: var(--navy);
+      height: 56px;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      display: flex; align-items: center; padding: 0 1.5rem; position: sticky; top: 0; z-index: 100;
+      box-shadow: 0 2px 12px rgba(15,23,42,0.18);
+    }
+    .nav-brand { display: flex; align-items: center; gap: .4rem; text-decoration: none; color: #F1F5F9; font-size: 1.05rem; }
+    .nav-links { margin-left: 2.5rem; display: flex; gap: 1.25rem; }
+    .nav-links a { text-decoration: none; color: #94A3B8; font-weight: 500; font-size: .875rem; transition: color .15s; }
+    .nav-links a:hover, .nav-links a.active { color: #93C5FD; }
+    .nav-right { margin-left: auto; display: flex; align-items: center; gap: .75rem; }
+    .nav-avatar { width: 28px; height: 28px; background: rgba(37,99,235,0.25); color: #93C5FD; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: .8rem; border: 1px solid rgba(147,197,253,0.3); }
+    .nav-name { font-size: .85rem; font-weight: 500; color: #CBD5E1; }
+    
+    .container { width: 100%; max-width: 1050px; margin: 2rem auto; padding: 0 1.5rem; }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; padding: .5rem 1rem;
+      border-radius: 6px; font-size: .85rem; font-weight: 500; cursor: pointer; border: 1px solid transparent;
+      transition: all .15s; text-decoration: none;
+    }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: var(--accent-h); }
+    .btn-ghost { background: transparent; color: var(--muted); border-color: var(--border); }
+    .btn-ghost:hover { background: var(--bg); color: var(--text); }
+    
+    .flash { padding: .75rem 1rem; border-radius: 6px; font-size: .85rem; margin-bottom: 1.25rem; font-weight: 500; }
+    .flash.success { background: var(--green-l); color: var(--green); border: 1px solid rgba(16,185,129,0.15); }
+    .flash.error { background: var(--red-l); color: var(--red); border: 1px solid rgba(239,68,68,0.15); }
+    
+    .field { margin-bottom: 1rem; display: flex; flex-direction: column; gap: .35rem; }
+    .field label { font-size: .78rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .3px; }
+    .field input, .field textarea, .field select {
+      padding: .55rem .75rem; border: 1px solid var(--border2); border-radius: 6px; font-size: .875rem;
+      font-family: 'Inter', sans-serif; transition: border-color .15s; resize: vertical; background: var(--white);
+    }
+    .field input:focus, .field textarea:focus, .field select:focus {
+      outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(99,102,241,.1);
+    }
+  </style>
+  {% block head %}{% endblock %}
+</head>
+<body>
+
+{% if session.get('authed') %}
+<nav>
+  <a class="nav-brand" href="/dashboard">
+    <div class="logo" style="background: linear-gradient(135deg,#2563EB,#0EA5E9); color: white; padding: 0.2rem 0.5rem; border-radius: 6px; font-size: 1rem; display: inline-block; margin-right: 5px;">🧠</div>
+    <strong>RecrutAI</strong>
+  </a>
+  <div class="nav-links">
+    <a href="/dashboard" {% if request.endpoint=='dashboard' %}class="active"{% endif %}>Dashboard</a>
+    <a href="/analyse"   {% if request.endpoint=='analyse'   %}class="active"{% endif %}>Nouvelle Analyse</a>
+  </div>
+  <div class="nav-right">
+    <div class="nav-avatar">{{ session.get('nom','U')[0].upper() }}</div>
+    <span class="nav-name">{{ session.get('nom','') }}</span>
+    <a href="/logout" class="btn btn-ghost" style="padding:.35rem .75rem;font-size:.85rem;margin-left:.5rem;color:#94A3B8;border-color:rgba(148,163,184,0.25);">Déconnexion</a>
+  </div>
+</nav>
+{% endif %}
+
+<div class="container">
+  {% if request.endpoint != 'login' and request.endpoint != 'register' %}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for cat, msg in messages %}
+          <div class="flash {{ cat }}">{{ msg }}</div>
+        -- {% endfor %}
+      {% endif %}
+    {% endwith %}
+  {% endif %}
+  
+  {% block content %}{% endblock %}
+</div>
+
+</body>
+</html>

@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yassir RH - Recrutement Intelligent par IA</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <!-- Bouton toggle (toujours visible) -->
+    <button class="sidebar-toggle" id="sidebarToggle" title="Afficher/Masquer le menu">
+        <i class="fas fa-bars" id="toggleIcon"></i>
+    </button>
+
+    <!-- Sidebar gauche -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <a class="sidebar-brand" href="/">
+                <div class="brand-logo">YR</div>
+                <span class="brand-name">Yassir RH</span>
+            </a>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a class="sidebar-link" href="#features">
+                <i class="fas fa-star"></i>
+                <span>Fonctionnalités</span>
+            </a>
+            <a class="sidebar-link" href="#steps">
+                <i class="fas fa-list-ol"></i>
+                <span>Comment ça marche</span>
+            </a>
+            <a class="sidebar-link" href="#contact">
+                <i class="fas fa-envelope"></i>
+                <span>Contact</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <a class="btn btn-login w-100 mb-2 text-center" href="/login">
+                <i class="fas fa-sign-in-alt me-1"></i> Se connecter
+            </a>
+            <a class="btn btn-signup w-100 text-center" href="/register">
+                <i class="fas fa-user-plus me-1"></i> S'inscrire
+            </a>
+        </div>
+    </aside>
+
+    <!-- Overlay (ferme sidebar au clic) -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Contenu principal -->
+    <div class="main-content" id="mainContent">
+
+        <!-- Hero Section -->
+        <section class="hero-section">
+            <div class="container">
+                <div class="row justify-content-center">
+                    <div class="col-lg-8 col-md-10 text-center hero-content">
+
+                        <h1 class="hero-title">
+                            Recrutez les meilleurs<br>
+                            <span class="gradient-text">profils en un instant</span>
+                        </h1>
+
+                        <p class="hero-subtitle">
+                            Yassir RH analyse automatiquement les CV de vos candidats grâce à
+                            l'intelligence artificielle et vous propose un matching précis avec vos offres d'emploi.
+                        </p>
+
+                        <div class="hero-cta">
+                            <a href="/login" class="btn btn-primary-custom btn-lg">
+                                <i class="fas fa-sparkles"></i>
+                                Commencer maintenant
+                                <i class="fas fa-arrow-right"></i>
+                            </a>
+                            <p class="cta-note">Gratuit · Aucune carte requise</p>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section class="features-section" id="features">
+            <div class="container">
+                <div class="text-center mb-5">
+                    <h2 class="section-title">Tout ce dont vous avez besoin</h2>
+                    <p class="section-subtitle">Un workflow simple en 3 étapes pour recruter intelligemment</p>
+                </div>
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <div class="feature-card">
+                            <div class="feature-icon">
+                                <i class="fas fa-briefcase"></i>
+                            </div>
+                            <h5 class="feature-title">Gérez vos offres</h5>
+                            <p class="feature-desc">Créez et publiez vos offres d'emploi en quelques clics avec tous les critères requis.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="feature-card">
+                            <div class="feature-icon">
+                                <i class="fas fa-file-upload"></i>
+                            </div>
+                            <h5 class="feature-title">Analysez les CV</h5>
+                            <p class="feature-desc">Importez les CV de vos candidats et laissez l'IA extraire toutes les informations automatiquement.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="feature-card">
+                            <div class="feature-icon">
+                                <i class="fas fa-bolt"></i>
+                            </div>
+                            <h5 class="feature-title">Matching intelligent</h5>
+                            <p class="feature-desc">Obtenez un score de compatibilité précis entre chaque candidat et votre offre en secondes.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Steps Section -->
+        <section class="steps-section py-5" id="steps">
+            <div class="container">
+                <div class="text-center mb-5">
+                    <h2 class="section-title">Comment ça fonctionne ?</h2>
+                    <p class="section-subtitle">En 4 étapes simples, trouvez le candidat idéal</p>
+                </div>
+                <div class="row g-4 align-items-start">
+                    <div class="col-md-3 text-center">
+                        <div class="step-number">1</div>
+                        <h6 class="step-title mt-3">Publiez une offre</h6>
+                        <p class="step-desc">Saisissez le poste, les compétences et critères attendus.</p>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <div class="step-number">2</div>
+                        <h6 class="step-title mt-3">Uploadez les CV</h6>
+                        <p class="step-desc">Importez plusieurs CV PDF en une seule fois.</p>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <div class="step-number">3</div>
+                        <h6 class="step-title mt-3">Analyse automatique</h6>
+                        <p class="step-desc">L'IA extrait le texte et compare avec l'offre (TF-IDF + cosine + KNN).</p>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <div class="step-number">4</div>
+                        <h6 class="step-title mt-3">Résultats classés</h6>
+                        <p class="step-desc">Consultez le score de matching et le classement de chaque candidat.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA Section -->
+        <section class="cta-section py-5">
+            <div class="container text-center">
+                <h2 class="cta-title mb-3">Prêt à recruter plus intelligemment ?</h2>
+                <p class="cta-subtitle mb-4">Commencez gratuitement et découvrez la puissance de l'IA pour votre processus de recrutement</p>
+                <div class="d-flex gap-3 justify-content-center flex-wrap">
+                    <a href="/register" class="btn btn-primary-custom btn-lg">
+                        <i class="fas fa-user-plus"></i> Créer un compte
+                    </a>
+                    <a href="/login" class="btn btn-outline-custom btn-lg">
+                        <i class="fas fa-sign-in-alt"></i> Se connecter
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer py-5" id="contact">
+            <div class="container">
+                <div class="row mb-4">
+                    <div class="col-md-4 mb-4 mb-md-0">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <div class="brand-logo brand-logo-sm">YR</div>
+                            <span class="fw-bold">Yassir RH</span>
+                        </div>
+                        <p class="small" style="color:#94A3B8;">Plateforme intelligente de recrutement basée sur l'IA pour transformer votre processus de sélection.</p>
+                    </div>
+                    <div class="col-md-4 mb-4 mb-md-0">
+                        <h6 class="fw-bold mb-3">Liens</h6>
+                        <ul class="list-unstyled small footer-links">
+                            <li><a href="#features">Fonctionnalités</a></li>
+                            <li><a href="#steps">Comment ça marche</a></li>
+                            <li><a href="/login">Connexion</a></li>
+                            <li><a href="/register">Inscription</a></li>
+                        </ul>
+                    </div>
+                    <div class="col-md-4">
+                        <h6 class="fw-bold mb-3">Nous Contacter</h6>
+                        <p class="text-muted small">
+                            <i class="fas fa-envelope me-2"></i> info@yassir-rh.com<br><br>
+                            <i class="fas fa-phone me-2"></i> +213 XX XX XX XX
+                        </p>
+                    </div>
+                </div>
+                <hr>
+                <div class="text-center text-muted small">
+                    <p class="mb-0">&copy; 2026 Yassir RH. Tous droits réservés. | <a href="#">Politique de confidentialité</a></p>
+                </div>
+            </div>
+        </footer>
+
+    </div><!-- end main-content -->
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const sidebar     = document.getElementById('sidebar');
+        const toggle      = document.getElementById('sidebarToggle');
+        const overlay     = document.getElementById('sidebarOverlay');
+        const main        = document.getElementById('mainContent');
+        const icon        = document.getElementById('toggleIcon');
+
+        function openSidebar() {
+            sidebar.classList.add('open');
+            overlay.classList.add('active');
+            main.classList.add('shifted');
+            icon.className = 'fas fa-times';
+        }
+
+        function closeSidebar() {
+            sidebar.classList.remove('open');
+            overlay.classList.remove('active');
+            main.classList.remove('shifted');
+            icon.className = 'fas fa-bars';
+        }
+
+        toggle.addEventListener('click', () => {
+            sidebar.classList.contains('open') ? closeSidebar() : openSidebar();
+        });
+
+        overlay.addEventListener('click', closeSidebar);
+
+        // Fermer au clic sur un lien sidebar
+        document.querySelectorAll('.sidebar-link').forEach(link => {
+            link.addEventListener('click', closeSidebar);
+        });
+    </script>
+</body>
+</html>

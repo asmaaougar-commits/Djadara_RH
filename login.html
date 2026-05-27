@@ -1,0 +1,501 @@
+{% extends "base.html" %}
+{% block title %}Se connecter à Yassir RH{% endblock %}
+{% block head %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Clash+Display:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  body {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #EFF6FF 0%, #F4F7F6 40%, #E0F2FE 70%, #EFF6FF 100%);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Conteneur centré absolu */
+  .login-outer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    width: 100%;
+    padding: 2rem;
+    box-sizing: border-box;
+  }
+
+  /* Blobs décoratifs d'arrière-plan */
+  body::before {
+    content: '';
+    position: fixed;
+    width: 420px;
+    height: 420px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(37,99,235,0.14) 0%, transparent 70%);
+    top: -100px;
+    left: -80px;
+    pointer-events: none;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    width: 340px;
+    height: 340px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(14,165,233,0.12) 0%, transparent 70%);
+    bottom: -80px;
+    right: -60px;
+    pointer-events: none;
+  }
+
+  /* Carte principale */
+  .login-card {
+    background: rgba(255, 255, 255, 0.90);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border: 1px solid rgba(37, 99, 235, 0.16);
+    border-radius: 28px;
+    padding: 2.5rem 2rem;
+    width: 100%;
+    max-width: 390px;
+    box-sizing: border-box;
+    position: relative;
+    z-index: 1;
+    box-shadow:
+      0 0 0 1px rgba(37, 99, 235, 0.06),
+      0 8px 24px rgba(37, 99, 235, 0.10),
+      0 24px 60px rgba(14, 165, 233, 0.12),
+      0 48px 100px rgba(37, 99, 235, 0.08);
+  }
+
+  /* Logo */
+  .logo-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 1.4rem;
+  }
+
+  .logo-mark {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #2563EB, #0EA5E9);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Clash Display', sans-serif;
+    font-weight: 700;
+    font-size: 20px;
+    color: white;
+    letter-spacing: -1px;
+    flex-shrink: 0;
+    box-shadow: 0 4px 14px rgba(37, 99, 235, .30);
+  }
+
+  .logo-name {
+    font-family: 'Clash Display', sans-serif;
+    font-weight: 600;
+    font-size: 22px;
+    color: #0F172A;
+    letter-spacing: -0.5px;
+  }
+
+  .logo-name span {
+    background: linear-gradient(90deg, #2563EB, #0EA5E9);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Badge IA */
+  .ia-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: linear-gradient(135deg, #EFF6FF, #E0F2FE);
+    border: 1px solid rgba(37, 99, 235, .20);
+    border-radius: 50px;
+    padding: 5px 14px;
+    font-size: 12px;
+    color: #1d4ed8;
+    font-weight: 600;
+    margin-bottom: 1.2rem;
+  }
+
+  .ia-badge svg {
+    width: 13px;
+    height: 13px;
+    fill: #0EA5E9;
+  }
+
+  /* Titres */
+  .login-title {
+    font-family: 'Clash Display', sans-serif;
+    font-weight: 600;
+    font-size: 21px;
+    color: #0F172A;
+    text-align: center;
+    margin: 0 0 0.3rem;
+    letter-spacing: -0.3px;
+  }
+
+  .login-sub {
+    font-size: 13px;
+    color: #4B6A8A;
+    text-align: center;
+    margin: 0 0 1.6rem;
+  }
+
+  /* Messages flash */
+  .flash-msg {
+    color: #DC2626;
+    font-size: 13px;
+    text-align: center;
+    margin-bottom: 14px;
+    font-weight: 500;
+    background: #FEF2F2;
+    border: 1px solid #FECACA;
+    border-radius: 12px;
+    padding: 10px 14px;
+  }
+
+  /* Champs du formulaire */
+  .field-wrap {
+    margin-bottom: 12px;
+    position: relative;
+  }
+
+  .field-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+  }
+
+  .field-icon svg {
+    width: 17px;
+    height: 17px;
+    stroke: #93C5FD;
+    fill: none;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .field-wrap input {
+    width: 100%;
+    padding: 13px 14px 13px 42px;
+    background: #F8FAFC;
+    border: 1.5px solid #CBD5E1;
+    border-radius: 14px;
+    font-size: 14px;
+    color: #0F172A;
+    box-sizing: border-box;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    outline: none;
+  }
+
+  .field-wrap input::placeholder {
+    color: #94A3B8;
+  }
+
+  .field-wrap input:focus {
+    border-color: #2563EB;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    background: #ffffff;
+  }
+
+  /* Lien mot de passe oublié */
+  .forgot-link {
+    display: block;
+    text-align: right;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #2563EB;
+    text-decoration: none;
+    margin: -4px 0 18px;
+    transition: color 0.2s;
+  }
+
+  .forgot-link:hover {
+    color: #1d4ed8;
+  }
+
+  /* Bouton principal */
+  .btn-login {
+    width: 100%;
+    background: linear-gradient(135deg, #2563EB 0%, #0EA5E9 100%);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    padding: 14px;
+    font-weight: 600;
+    font-size: 15px;
+    cursor: pointer;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    transition: opacity 0.2s ease, transform 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 14px;
+    box-shadow: 0 4px 18px rgba(37, 99, 235, 0.3);
+  }
+
+  .btn-login:hover {
+    opacity: 0.92;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 22px rgba(37, 99, 235, 0.38);
+  }
+
+  .btn-login:active {
+    transform: scale(0.98);
+  }
+
+  .btn-login svg {
+    width: 17px;
+    height: 17px;
+    stroke: white;
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  /* Séparateur */
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 6px 0 14px;
+  }
+
+  .divider hr {
+    flex: 1;
+    border: none;
+    border-top: 1px solid #CBD5E1;
+    margin: 0;
+  }
+
+  .divider span {
+    font-size: 12px;
+    color: #94A3B8;
+    white-space: nowrap;
+    font-weight: 500;
+  }
+
+  /* Bouton Gmail */
+  .btn-gmail {
+    width: 100%;
+    background: white;
+    color: #0F172A;
+    border: 1.5px solid #CBD5E1;
+    border-radius: 50px;
+    padding: 12px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    transition: border-color 0.2s ease, background 0.2s ease;
+    text-decoration: none;
+  }
+
+  .btn-gmail:hover {
+    border-color: #93C5FD;
+    background: #F8FAFC;
+  }
+
+  .btn-gmail svg {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+  }
+
+  /* Bouton créer un compte */
+  .btn-register {
+    width: 100%;
+    background: transparent;
+    color: #2563EB;
+    border: 1.5px solid #93C5FD;
+    border-radius: 50px;
+    padding: 12px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    text-decoration: none;
+    box-sizing: border-box;
+  }
+
+  .btn-register:hover {
+    background: #EFF6FF;
+    color: #1d4ed8;
+    border-color: #2563EB;
+  }
+
+  .btn-register svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  /* Footer légal */
+  .legal {
+    margin-top: 1.4rem;
+    text-align: center;
+    font-size: 11.5px;
+    color: #94A3B8;
+    line-height: 1.6;
+  }
+
+  .legal a {
+    color: #2563EB;
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  .legal a:hover {
+    text-decoration: underline;
+  }
+
+  /* Centre le badge et le texte */
+  .center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="login-outer">
+<div class="login-card">
+
+  <!-- Logo -->
+  <div class="logo-wrap">
+    <div class="logo-mark">Y</div>
+    <div class="logo-name">Yassir <span>RH</span></div>
+  </div>
+
+  <!-- Badge IA -->
+  <div class="center">
+    <div class="ia-badge">
+      <!-- Icône étincelle -->
+      <svg viewBox="0 0 24 24" fill="none" stroke="#0EA5E9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13">
+        <path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/>
+      </svg>
+      Recrutement piloté par l'IA
+    </div>
+  </div>
+
+  <!-- Titre -->
+  <p class="login-title">Bon retour parmi nous 👋</p>
+  <p class="login-sub">Connectez-vous pour gérer vos candidatures</p>
+
+  <!-- Messages flash -->
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      {% for msg in messages %}
+        <div class="flash-msg">{{ msg }}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <!-- Formulaire -->
+  <form method="POST">
+
+    <!-- Email -->
+    <div class="field-wrap">
+      <span class="field-icon">
+        <svg viewBox="0 0 24 24">
+          <rect x="2" y="4" width="20" height="16" rx="2"/>
+          <polyline points="2,4 12,13 22,4"/>
+        </svg>
+      </span>
+      <input type="email" name="email" placeholder="Adresse e-mail professionnelle" required autocomplete="email">
+    </div>
+
+    <!-- Mot de passe -->
+    <div class="field-wrap">
+      <span class="field-icon">
+        <svg viewBox="0 0 24 24">
+          <rect x="3" y="11" width="18" height="11" rx="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+      </span>
+      <input type="password" name="password" placeholder="Mot de passe" required autocomplete="current-password">
+    </div>
+
+    <a href="#" class="forgot-link">Mot de passe oublié ?</a>
+
+    <!-- Bouton connexion -->
+    <button type="submit" class="btn-login">
+      <svg viewBox="0 0 24 24">
+        <line x1="5" y1="12" x2="19" y2="12"/>
+        <polyline points="13,6 19,12 13,18"/>
+      </svg>
+      Se connecter
+    </button>
+
+  </form>
+
+  <!-- Séparateur -->
+  <div class="divider">
+    <hr><span>ou continuer avec</span><hr>
+  </div>
+
+  <!-- Bouton Gmail -->
+  <button type="button" class="btn-gmail" onclick="document.querySelector('input[name=email]').value='recruteur@ummto.dz';">
+    <svg viewBox="0 0 24 24">
+      <path fill="#EA4335" d="M23.49 12.27c0-.79-.07-1.54-.19-2.27H12v4.51h6.43c-.28 1.44-1.09 2.67-2.33 3.51v2.91h3.78c2.2-2.03 3.61-5.01 3.61-8.68z"/>
+      <path fill="#4285F4" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.78-2.91c-1.05.7-2.4 1.12-4.15 1.12-3.21 0-5.93-2.16-6.9-5.06H1.31v3c2 3.97 6.09 6.68 10.69 6.68z"/>
+      <path fill="#FBBC05" d="M5.1 14.24A7.16 7.16 0 0 1 4.7 12c0-.79.13-1.57.4-2.34V6.66H1.31A11.94 11.94 0 0 0 0 12c0 1.92.45 3.74 1.25 5.34l3.85-3.1z"/>
+      <path fill="#34A853" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.4 0 3.31 2.71 1.31 6.68l3.79 2.98c.97-2.9 3.69-5.06 6.9-5.06z"/>
+    </svg>
+    Se connecter avec Gmail
+  </button>
+
+  <!-- Bouton créer un compte -->
+  <a href="/register" class="btn-register">
+    <svg viewBox="0 0 24 24">
+      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+      <circle cx="9" cy="7" r="4"/>
+      <line x1="19" y1="8" x2="19" y2="14"/>
+      <line x1="22" y1="11" x2="16" y2="11"/>
+    </svg>
+    Créer un nouveau compte
+  </a>
+
+  <!-- Légal -->
+  <p class="legal">
+    En vous connectant, vous acceptez nos <a href="#">CGU</a> et notre <a href="#">politique de confidentialité</a>
+  </p>
+
+</div>
+</div>
+{% endblock %}

@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% block title %}Résultats du Matching — RecrutAI{% endblock %}
+{% block head %}
+<style>
+  .results-header {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 2rem;
+  }
+  .results-header h2 { font-size: 1.4rem; font-weight: 700; color: var(--text); }
+  .offer-meta { display: flex; gap: 1.5rem; margin-top: 0.75rem; font-size: 0.85rem; color: var(--muted); }
+  .offer-meta strong { color: var(--text); }
+
+  /* Liste et classement des candidats */
+  .ranking-title { font-size: 1.1rem; font-weight: 600; color: var(--text); margin-bottom: 1rem; }
+  
+  .candidats-list { display: flex; flex-direction: column; gap: 1rem; }
+  
+  .candidat-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: transform 0.15s ease;
+  }
+  .candidat-card:hover { transform: translateY(-2px); border-color: var(--border2); }
+
+  .candidat-info { display: flex; align-items: center; gap: 1.25rem; }
+  .candidat-rank {
+    width: 32px; height: 32px; border-radius: 50%; background: var(--bg);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 0.9rem; color: var(--text);
+    border: 1px solid var(--border);
+  }
+  /* Mettre en valeur le premier (Top Candat) */
+  .candidat-card:first-child .candidat-rank { background: var(--amber-l); color: var(--amber); border-color: var(--amber); }
+
+  .candidat-details .name { font-weight: 600; color: var(--text); font-size: 0.95rem; }
+  .candidat-details .meta { font-size: 0.8rem; color: var(--muted); margin-top: 0.2rem; }
+
+  /* Section des Scores et Badges */
+  .candidat-score-box { display: flex; align-items: center; gap: 1.5rem; }
+  
+  .score-badge {
+    padding: 0.25rem 0.6rem; border-radius: 6px; font-size: 0.8rem; font-weight: 600;
+  }
+  .score-badge.excellent { background: var(--green-l); color: var(--green); }
+  .score-badge.bon-profil { background: var(--accent-l); color: var(--accent); }
+  .score-badge.partiel { background: var(--amber-l); color: var(--amber); }
+  .score-badge.insuffisant { background: var(--red-l); color: var(--red); }
+
+  .score-percentage { font-size: 1.4rem; font-weight: 700; color: var(--text); min-width: 60px; text-align: right; }
+
+  .actions-footer { margin-top: 2.5rem; display: flex; gap: 1rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="results-wrap">
+  
+  <div class="results-header">
+    <h2>Analyse comparative : {{ offer.titre }}</h2>
+    <div class="offer-meta">
+      <div>Mots-clés recherchés : <strong>{{ offer.competences }}</strong></div>
+      {% if offer.experience %}
+        <div>Expérience requise : <strong>{{ offer.experience }}</strong></div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="ranking-title">
+    Classement des candidats par pertinence IA (TF-IDF + Proximité KNN)
+  </div>
+
+  <div class="candidats-list">
+    {% for c in candidats %}
+      <div class="candidat-card">
+        
+        <div class="candidat-info">
+          <div class="candidat-rank">
+            {% if c.rang == 1 %}🏆{% else %}{{ c.rang }}{% endif %}
+          </div>
+          <div class="candidat-details">
+            <div class="name">{{ c.fichier }}</div>
+            <div class="meta">Extrait de texte traité avec succès par OCR</div>
+          </div>
+        </div>
+
+        <div class="candidat-score-box">
+          {% if c.niveau == 'Excellent' %}
+            <span class="score-badge excellent">Excellent</span>
+          {% elif c.niveau == 'Bon profil' %}
+            <span class="score-badge bon-profil">Bon profil</span>
+          {% elif c.niveau == 'Partiel' %}
+            <span class="score-badge partiel">Profil partiel</span>
+          {% else %}
+            <span class="score-badge insuffisant">Insuffisant</span>
+          {% endif %}
+          
+          <div class="score-percentage">{{ c.global_score }}%</div>
+        </div>
+
+      </div>
+    {% endfor %}
+  </div>
+
+  <div class="actions-footer">
+    <a href="/analyse" class="btn btn-ghost">← Lancer un autre matching</a>
+    <a href="/dashboard" class="btn btn-primary">Retourner au tableau de bord</a>
+  </div>
+
+</div>
+{% endblock %}
