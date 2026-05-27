@@ -17,6 +17,17 @@
     overflow: hidden;
   }
 
+  /* Conteneur centré absolu */
+  .login-outer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    width: 100%;
+    padding: 2rem;
+    box-sizing: border-box;
+  }
+
   /* Blobs décoratifs d'arrière-plan */
   body::before {
     content: '';
@@ -44,18 +55,22 @@
 
   /* Carte principale */
   .login-card {
-    background: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    border: 1px solid rgba(200, 140, 220, 0.25);
-    border-radius: 24px;
+    background: rgba(255, 255, 255, 0.88);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border: 1px solid rgba(200, 140, 220, 0.22);
+    border-radius: 28px;
     padding: 2.5rem 2rem;
     width: 100%;
     max-width: 390px;
     box-sizing: border-box;
     position: relative;
     z-index: 1;
-    margin: 1.5rem;
+    box-shadow:
+      0 0 0 1px rgba(180, 100, 220, 0.08),
+      0 8px 24px rgba(160, 60, 220, 0.10),
+      0 24px 60px rgba(180, 80, 210, 0.15),
+      0 48px 100px rgba(200, 100, 230, 0.10);
   }
 
   /* Logo */
@@ -377,6 +392,7 @@
 {% endblock %}
 
 {% block content %}
+<div class="login-outer">
 <div class="login-card">
 
   <!-- Logo -->
@@ -479,5 +495,6 @@
     En vous connectant, vous acceptez nos <a href="#">CGU</a> et notre <a href="#">politique de confidentialité</a>
   </p>
 
+</div>
 </div>
 {% endblock %}
