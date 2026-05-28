@@ -1,0 +1,275 @@
+{% extends "base.html" %}
+{% block title %}Matching IA — Yassir RH{% endblock %}
+
+{% block head %}
+<style>
+  .matching-wrapper {
+    max-width: 900px;
+  }
+
+  /* Offre sélectionnée banner */
+  .offre-banner {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 28px;
+  }
+  .offre-banner .label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+  }
+  .offre-banner h2 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--text);
+    letter-spacing: -0.5px;
+  }
+  .offre-banner .company {
+    font-size: 0.9rem;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  /* Section title */
+  .section-label {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 16px;
+  }
+
+  /* Candidat grid */
+  .candidat-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 32px;
+  }
+
+  .candidat-card {
+    background: var(--white);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    cursor: pointer;
+    transition: var(--transition);
+    position: relative;
+  }
+  .candidat-card:hover {
+    border-color: var(--accent-m);
+    box-shadow: var(--shadow-md);
+  }
+  .candidat-card.selected {
+    border-color: var(--accent);
+    background: var(--accent-l);
+    box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.12);
+  }
+  .candidat-card input[type="radio"] {
+    display: none;
+  }
+
+  .candidat-avatar {
+    width: 40px;
+    height: 40px;
+    background: var(--accent-l);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent);
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+
+  .candidat-info .name {
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--text);
+  }
+  .candidat-info .score-cv {
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  .candidat-arrow {
+    margin-left: auto;
+    color: var(--accent);
+    font-size: 0.85rem;
+    opacity: 0;
+    transition: var(--transition);
+  }
+  .candidat-card.selected .candidat-arrow {
+    opacity: 1;
+  }
+
+  /* Launch button */
+  .btn-launch {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    max-width: 340px;
+    margin: 0 auto;
+    padding: 15px 32px;
+    background: linear-gradient(135deg, var(--accent) 0%, #8B5CF6 100%);
+    color: white;
+    border: none;
+    border-radius: 14px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: var(--transition);
+    box-shadow: 0 6px 24px rgba(108, 92, 231, 0.35);
+    text-decoration: none;
+  }
+  .btn-launch:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 32px rgba(108, 92, 231, 0.45);
+    color: white;
+  }
+  .btn-launch i { font-size: 1rem; }
+
+  .launch-center {
+    text-align: center;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="matching-wrapper">
+
+  <!-- Offre sélectionnée -->
+  <div class="offre-banner">
+    <div class="label">Offre sélectionnée</div>
+    <h2 id="offreTitre">—</h2>
+    <div class="company" id="offreCompany"></div>
+  </div>
+
+  <!-- Choix d'offre (caché, utilisé pour pré-remplir) -->
+  <form action="/match" method="POST" enctype="multipart/form-data" id="matchForm">
+    <input type="hidden" name="offre_id" id="offreIdInput" value="">
+
+    <!-- Sélecteur d'offre inline (si pas déjà sélectionné) -->
+    <div id="offresStep" style="margin-bottom: 24px; display: {% if not request.args.get('offre_id') %}block{% else %}none{% endif %};">
+      <div class="section-label">Choisir une offre d'emploi</div>
+      <div class="candidat-grid">
+        {% for offre in offres %}
+        <label class="candidat-card" onclick="selectOffre('{{ offre.id }}', '{{ offre.titre }}', '{{ offre.experience or '' }}')">
+          <input type="radio" name="_offre_pick" value="{{ offre.id }}">
+          <div class="candidat-avatar"><i class="fa-solid fa-briefcase"></i></div>
+          <div class="candidat-info">
+            <div class="name">{{ offre.titre }}</div>
+            <div class="score-cv">{{ offre.competences[:40] }}{% if offre.competences|length > 40 %}…{% endif %}</div>
+          </div>
+          <i class="fa-solid fa-chevron-right candidat-arrow"></i>
+        </label>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Choisir candidat(s) / uploader CVs -->
+    <div id="candidatsStep">
+      <div class="section-label">Choisir un candidat</div>
+
+      <!-- Upload zone -->
+      <div id="dropZone" style="border: 2px dashed var(--border2); background: var(--slate-50); border-radius: var(--radius-lg); padding: 40px 24px; text-align: center; cursor: pointer; transition: var(--transition); margin-bottom: 16px;">
+        <div style="width: 56px; height: 56px; background: var(--white); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-sm); margin: 0 auto 14px; color: var(--accent); font-size: 1.4rem;">
+          <i class="fa-solid fa-folder-open"></i>
+        </div>
+        <p style="font-weight: 700; font-size: 0.95rem; margin-bottom: 4px;">Glissez-déposez vos CV ici</p>
+        <p style="color: var(--muted); font-size: 0.82rem; margin-bottom: 14px;">Format PDF · Max. 10 fichiers</p>
+        <span class="btn btn-secondary" style="padding: 8px 16px; font-size: 0.82rem;">Parcourir</span>
+        <input type="file" name="cv_files" id="cvFiles" multiple accept=".pdf" style="display:none;">
+      </div>
+
+      <!-- File list preview (like candidat cards) -->
+      <div id="fileGrid" class="candidat-grid" style="display:none;"></div>
+    </div>
+
+    <!-- Launch button -->
+    <div class="launch-center" style="margin-top: 32px;">
+      <button type="submit" class="btn-launch" id="launchBtn">
+        <i class="fa-solid fa-wand-magic-sparkles"></i> Lancer le matching IA
+      </button>
+    </div>
+  </form>
+</div>
+
+<script>
+  const dropZone = document.getElementById('dropZone');
+  const fileInput = document.getElementById('cvFiles');
+  const fileGrid  = document.getElementById('fileGrid');
+
+  // Offre selection
+  function selectOffre(id, titre, company) {
+    document.getElementById('offreIdInput').value = id;
+    document.getElementById('offreTitre').textContent = titre;
+    document.getElementById('offreCompany').textContent = company;
+    document.querySelectorAll('#offresStep .candidat-card').forEach(c => c.classList.remove('selected'));
+    event.currentTarget.classList.add('selected');
+  }
+
+  // Pre-fill from URL param if provided
+  const urlParams = new URLSearchParams(window.location.search);
+  const preId = urlParams.get('offre_id');
+  if (preId) {
+    document.getElementById('offreIdInput').value = preId;
+    document.getElementById('offresStep').style.display = 'none';
+  }
+
+  // Drop zone
+  dropZone.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', () => handleFiles(fileInput.files));
+
+  ['dragenter','dragover'].forEach(ev => {
+    dropZone.addEventListener(ev, e => {
+      e.preventDefault();
+      dropZone.style.borderColor = 'var(--accent)';
+      dropZone.style.background  = 'var(--accent-l)';
+    });
+  });
+  ['dragleave','drop'].forEach(ev => {
+    dropZone.addEventListener(ev, e => {
+      e.preventDefault();
+      dropZone.style.borderColor = 'var(--border2)';
+      dropZone.style.background  = 'var(--slate-50)';
+    });
+  });
+  dropZone.addEventListener('drop', e => {
+    fileInput.files = e.dataTransfer.files;
+    handleFiles(e.dataTransfer.files);
+  });
+
+  function handleFiles(files) {
+    fileGrid.innerHTML = '';
+    if (!files.length) { fileGrid.style.display = 'none'; return; }
+    fileGrid.style.display = 'grid';
+    for (let f of files) {
+      const card = document.createElement('div');
+      card.className = 'candidat-card selected';
+      card.innerHTML = `
+        <div class="candidat-avatar" style="background:rgba(239,68,68,0.1); color:#EF4444;">
+          <i class="fa-regular fa-file-pdf"></i>
+        </div>
+        <div class="candidat-info">
+          <div class="name">${f.name.replace('.pdf','')}</div>
+          <div class="score-cv">${(f.size/1024).toFixed(1)} KB</div>
+        </div>
+        <i class="fa-solid fa-check candidat-arrow" style="opacity:1; color:var(--green);"></i>
+      `;
+      fileGrid.appendChild(card);
+    }
+  }
+</script>
+{% endblock %}

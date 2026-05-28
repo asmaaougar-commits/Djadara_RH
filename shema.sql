@@ -1,6 +1,3 @@
--- ═══════════════════════════════════════════════════
---  RecrutAI — Schéma PostgreSQL (Natif)
--- ═══════════════════════════════════════════════════
 
 DROP TABLE IF EXISTS cvs, offres, users CASCADE;
 

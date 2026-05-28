@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+{% block title %}Upload CV — CV Assistant{% endblock %}
+{% block head %}
+<style>
+  .upload-center {
+    max-width: 600px;
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  .upload-icon-wrap {
+    width: 72px; height: 72px;
+    background: var(--accent-l);
+    border-radius: 18px;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 1.5rem;
+    color: var(--accent);
+  }
+
+  .upload-center h1 {
+    font-size: 1.5rem; font-weight: 700; color: var(--text);
+    margin-bottom: 0.4rem;
+  }
+  .upload-center > p {
+    color: var(--muted); font-size: 0.88rem; margin-bottom: 2rem;
+  }
+
+  .upload-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2rem;
+    box-shadow: var(--shadow-sm);
+    text-align: left;
+  }
+
+  .drop-zone {
+    border: 2px dashed var(--accent-m);
+    border-radius: 10px;
+    padding: 2.5rem 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    background: var(--accent-l);
+    transition: all 0.15s;
+    margin-bottom: 1.5rem;
+  }
+
+  .drop-zone:hover, .drop-zone.dragover {
+    border-color: var(--accent);
+    background: rgba(108,92,231,0.08);
+  }
+
+  .drop-zone-icon {
+    width: 48px; height: 48px; background: white;
+    border-radius: 12px; display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 0.85rem;
+    color: var(--accent);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .drop-zone p { font-weight: 600; font-size: 0.9rem; color: var(--text); margin-bottom: 0.25rem; }
+  .drop-zone span { font-size: 0.78rem; color: var(--muted); }
+
+  .file-list {
+    display: flex; flex-direction: column; gap: 0.5rem;
+    max-height: 180px; overflow-y: auto; margin-bottom: 1.25rem;
+  }
+
+  .file-item {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 0.6rem 0.85rem;
+    font-size: 0.82rem;
+  }
+
+  .file-item-icon {
+    width: 28px; height: 28px; background: var(--red-l); border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--red); flex-shrink: 0; font-size: 0.7rem; font-weight: 700;
+  }
+
+  .file-item-name { flex: 1; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .file-item-size { color: var(--muted); flex-shrink: 0; }
+
+  .submit-btn {
+    width: 100%;
+    background: var(--accent); color: white;
+    border: none; border-radius: 10px; padding: 0.85rem;
+    font-size: 0.9rem; font-weight: 700; cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: background 0.15s, transform 0.15s;
+    box-shadow: 0 4px 16px rgba(108,92,231,0.3);
+    opacity: 0.5; pointer-events: none;
+  }
+  .submit-btn.ready { opacity: 1; pointer-events: all; }
+  .submit-btn.ready:hover { background: var(--accent-h); transform: translateY(-1px); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="upload-center">
+  <div class="upload-icon-wrap">
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+      <polyline points="14,2 14,8 20,8"/>
+      <line x1="12" y1="18" x2="12" y2="12"/>
+      <line x1="9" y1="15" x2="15" y2="15"/>
+    </svg>
+  </div>
+
+  <h1>Analyser un CV</h1>
+  <p>Déposez un fichier CV et notre IA l'analysera en détail</p>
+
+  <div class="upload-card">
+    <form action="/match" method="POST" enctype="multipart/form-data" id="uploadForm">
+
+      <!-- Sélection de l'offre -->
+      <div class="field" style="margin-bottom: 1.5rem;">
+        <label>Offre d'emploi cible (optionnel)</label>
+        <select name="offre_id">
+          <option value="">— Analyse sans offre spécifique —</option>
+          {% for o in offres %}
+            <option value="{{ o.id }}">{{ o.titre }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Drop Zone -->
+      <input type="file" name="cv_files" id="cvFiles" accept=".pdf,.doc,.docx" multiple style="display:none;" onchange="handleFiles(this.files)">
+
+      <div class="drop-zone" id="dropZone" onclick="document.getElementById('cvFiles').click()">
+        <div class="drop-zone-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="16,16 12,12 8,16"/>
+            <line x1="12" y1="12" x2="12" y2="21"/>
+            <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/>
+          </svg>
+        </div>
+        <p>Glissez votre CV ici</p>
+        <span>ou cliquez pour parcourir • PDF, DOC, DOCX</span>
+      </div>
+
+      <div class="file-list" id="fileList"></div>
+
+      <button type="submit" class="submit-btn" id="submitBtn" onclick="showLoading()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="13,2 3,14 12,14 11,22 21,10 12,10 13,2"/>
+        </svg>
+        Analyser le CV
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- Loading overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+  <p style="font-weight: 600; color: var(--text); margin-bottom: 0.25rem;">Analyse IA en cours...</p>
+  <p style="font-size: 0.82rem; color: var(--muted);">Extraction OCR + calcul TF-IDF + similarité cosinus</p>
+</div>
+
+<script>
+  const dropZone = document.getElementById('dropZone');
+  const submitBtn = document.getElementById('submitBtn');
+  let selectedFiles = null;
+
+  ['dragenter', 'dragover'].forEach(e => {
+    dropZone.addEventListener(e, ev => { ev.preventDefault(); dropZone.classList.add('dragover'); });
+  });
+  ['dragleave', 'drop'].forEach(e => {
+    dropZone.addEventListener(e, ev => { ev.preventDefault(); dropZone.classList.remove('dragover'); });
+  });
+  dropZone.addEventListener('drop', e => {
+    const files = e.dataTransfer.files;
+    document.getElementById('cvFiles').files = files;
+    handleFiles(files);
+  });
+
+  function handleFiles(files) {
+    selectedFiles = files;
+    const list = document.getElementById('fileList');
+    list.innerHTML = '';
+
+    for (let f of files) {
+      const size = (f.size / 1024).toFixed(1);
+      const item = document.createElement('div');
+      item.className = 'file-item';
+      item.innerHTML = `
+        <div class="file-item-icon">PDF</div>
+        <span class="file-item-name">${f.name}</span>
+        <span class="file-item-size">${size} KB</span>
+      `;
+      list.appendChild(item);
+    }
+
+    if (files.length > 0) {
+      submitBtn.classList.add('ready');
+    }
+  }
+
+  function showLoading() {
+    if (!selectedFiles || selectedFiles.length === 0) return;
+    document.getElementById('loadingOverlay').classList.add('active');
+  }
+</script>
+{% endblock %}
