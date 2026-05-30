@@ -1,694 +1,610 @@
 import re
 import unicodedata
 import os
+import json
+import shutil
 from datetime import datetime
-from functools import wraps
 from flask import Flask, flash, redirect, render_template, request, session, url_for
-from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
 import numpy as np
 import psycopg2
 from psycopg2.extras import RealDictCursor
 
-# ── OCR & PDF ──────────────────────────────────────────────────────────────
-import fitz
+# ── PDF & OCR ──
+import fitz          # pymupdf
 import pytesseract
 from PIL import Image
 import io
-import shutil
+from pypdf import PdfReader
 
+# ── NLP & ML ──
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.neighbors import NearestNeighbors
+
+# ── Tesseract auto-détection ──
 tesseract_path = shutil.which("tesseract")
 if not tesseract_path:
-    for path in ['/opt/homebrew/bin/tesseract', '/usr/local/bin/tesseract', '/usr/bin/tesseract']:
+    for path in ['/opt/homebrew/bin/tesseract', '/usr/local/bin/tesseract']:
         if os.path.exists(path):
             tesseract_path = path
             break
 if tesseract_path:
     pytesseract.pytesseract.tesseract_cmd = tesseract_path
-    print(f"✅ Tesseract trouvé : {tesseract_path}")
+    print(f"✅ Tesseract : {tesseract_path}")
 else:
-    print("⚠️ Tesseract introuvable — OCR désactivé.")
+    print("⚠️  Tesseract introuvable — OCR désactivé")
 
-# ── APPLICATION CONFIGURATION ──────────────────────────────────────────────
-app = Flask(__name__)
-app.secret_key = os.environ.get("SECRET_KEY", "recrutai-ultra-secret-2026")
-
-UPLOAD_AVATAR_FOLDER = os.path.join('static', 'uploads', 'avatars')
-os.makedirs(UPLOAD_AVATAR_FOLDER, exist_ok=True)
-
-# ── DATABASE CONFIGURATION ─────────────────────────────────────────────────
-DB_HOST     = os.environ.get("DB_HOST",     "localhost")
-DB_NAME     = os.environ.get("DB_NAME",     "yassir_rh")
-DB_USER     = os.environ.get("DB_USER",     "asma")
-DB_PASSWORD = os.environ.get("DB_PASSWORD", "")
-DB_PORT     = os.environ.get("DB_PORT",     "5432")
-
-def get_db_connection():
-    conn = psycopg2.connect(
-        host=DB_HOST, database=DB_NAME,
-        user=DB_USER, password=DB_PASSWORD, port=DB_PORT
-    )
-    return conn
-
-def init_db():
-    conn = get_db_connection()
-    cur = conn.cursor()
-    cur.execute("""
-    CREATE TABLE IF NOT EXISTS users (
-        id SERIAL PRIMARY KEY,
-        nom VARCHAR(100) NOT NULL,
-        entreprise VARCHAR(150),
-        email VARCHAR(100) UNIQUE NOT NULL,
-        password VARCHAR(255) NOT NULL,
-        avatar VARCHAR(255),
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    );""")
-    cur.execute("""
-    CREATE TABLE IF NOT EXISTS offres (
-        id SERIAL PRIMARY KEY,
-        titre VARCHAR(255) NOT NULL,
-        description TEXT,
-        competences TEXT NOT NULL,
-        experience VARCHAR(100),
-        formation VARCHAR(150),
-        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    );""")
-    cur.execute("""
-    CREATE TABLE IF NOT EXISTS cvs (
-        id SERIAL PRIMARY KEY,
-        nom_fichier VARCHAR(255) NOT NULL,
-        contenu TEXT,
-        score SMALLINT CHECK (score >= 0 AND score <= 100),
-        offre_id INTEGER REFERENCES offres(id) ON DELETE CASCADE,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    );""")
-    cur.execute("SELECT id FROM users WHERE email = %s", ("recruteur@ummto.dz",))
-    if not cur.fetchone():
-        hashed_pwd = generate_password_hash("tizi2026")
-        cur.execute(
-            "INSERT INTO users (nom, entreprise, email, password) VALUES (%s, %s, %s, %s)",
-            ("Recruteur UMMTO", "UMMTO", "recruteur@ummto.dz", hashed_pwd)
-        )
-    conn.commit()
-    cur.close()
-    conn.close()
-    print("✅ Base de données initialisée.")
-
+# ── SpaCy ──
 try:
-    init_db()
-except Exception as e:
-    print(f"⚠️ Erreur d'initialisation DB : {e}")
+    import spacy
+    nlp = spacy.load("fr_core_news_sm")
+    SPACY_OK = True
+    print("✅ SpaCy fr_core_news_sm chargé")
+except Exception:
+    SPACY_OK = False
+    print("⚠️  SpaCy non disponible — fallback regex")
 
-# ── LOGIN DECORATOR ────────────────────────────────────────────────────────
-def login_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if not session.get('authed'):
-            flash("Veuillez vous connecter.", "error")
-            return redirect(url_for('login'))
-        return f(*args, **kwargs)
-    return decorated_function
+# ══════════════════════════════════════════
+app = Flask(__name__)
+app.secret_key = os.environ.get("SECRET_KEY", "yassir_rh_secret_key_2026")
 
-# ── NLP & TEXT PROCESSING ──────────────────────────────────────────────────
-def clean_text(text):
-    if not text: return ""
-    text = text.lower()
-    text = "".join(c for c in unicodedata.normalize('NFD', text) if unicodedata.category(c) != 'Mn')
-    text = re.sub(r'[^a-z0-9\s@\.]', ' ', text)
-    return " ".join(text.split())
+UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static', 'uploads')
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+ALLOWED_EXTENSIONS = {'pdf'}
 
-def extract_text_from_pdf(stream_bytes):
+def allowed_file(f):
+    return '.' in f and f.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+# ══════════════════════════════════════════
+#   BASE DE DONNÉES
+# ══════════════════════════════════════════
+def get_db_connection():
+    return psycopg2.connect(
+        host="localhost",
+        database="yassir_rh",
+        user="asma",
+        password="",
+        cursor_factory=RealDictCursor
+    )
+
+# ══════════════════════════════════════════
+#   NLP UTILITIES
+# ══════════════════════════════════════════
+def normalize(s: str) -> str:
+    s = (s or "").lower()
+    s = unicodedata.normalize("NFKD", s)
+    s = "".join(c for c in s if not unicodedata.combining(c))
+    s = re.sub(r"[^a-z0-9\s\-]", " ", s)
+    return re.sub(r"\s+", " ", s).strip()
+
+def extract_pdf_text(file_path: str) -> str:
+    """Extrait le texte d'un PDF. Fallback OCR si PDF scanné."""
     text = ""
     try:
-        doc = fitz.open(stream=stream_bytes, filetype="pdf")
-        for page in doc:
-            text += page.get_text()
-        doc.close()
-    except Exception:
-        pass
-    if len(clean_text(text)) < 50 and tesseract_path:
+        with open(file_path, 'rb') as f:
+            reader = PdfReader(f)
+            text = "\n".join(p.extract_text() or "" for p in reader.pages).strip()
+    except Exception as e:
+        print(f"pypdf error: {e}")
+
+    # Fallback OCR si texte insuffisant
+    if len(text) < 50 and tesseract_path:
         try:
-            text = ""
-            doc = fitz.open(stream=stream_bytes, filetype="pdf")
+            doc = fitz.open(file_path)
+            ocr_pages = []
             for page in doc:
                 pix = page.get_pixmap(dpi=150)
                 img = Image.open(io.BytesIO(pix.tobytes("png")))
-                text += pytesseract.image_to_string(img, lang="fra+eng")
-            doc.close()
-        except Exception:
-            pass
+                ocr_pages.append(pytesseract.image_to_string(img, lang="fra+eng"))
+            text = "\n".join(ocr_pages).strip()
+            print(f"  → OCR utilisé sur {os.path.basename(file_path)}")
+        except Exception as e:
+            print(f"OCR error: {e}")
     return text
 
-def compute_knn_rank(scores_arr):
-    if len(scores_arr) < 2:
-        return np.zeros_like(scores_arr)
-    distances = np.abs(1.0 - scores_arr)
-    max_d = np.max(distances) if np.max(distances) > 0 else 1.0
-    return 1.0 - (distances / max_d)
+def extraire_nom_candidat(texte: str, nom_fichier: str) -> str:
+    """Tente d'extraire le nom du candidat depuis les premières lignes du CV."""
+    lignes = [l.strip() for l in texte.split('\n') if l.strip()]
+    for ligne in lignes[:8]:
+        mots = ligne.split()
+        if 2 <= len(mots) <= 4 and all(m[0].isupper() for m in mots if m.isalpha()):
+            if not any(kw in ligne.lower() for kw in
+                       ['curriculum', 'vitae', 'cv', 'résumé', 'resume', '@', 'tel', 'email', 'www']):
+                return ligne.title()
+    return nom_fichier.replace('.pdf', '').replace('_', ' ').replace('-', ' ').title()
 
-# ── ROUTES ─────────────────────────────────────────────────────────────────
+# ── TF-IDF cosine ──
+def compute_tfidf_cosine(texts: list, query: str) -> np.ndarray:
+    corpus = texts + [query]
+    vec = TfidfVectorizer(ngram_range=(1, 2), max_features=5000)
+    matrix = vec.fit_transform([normalize(t) for t in corpus])
+    return cosine_similarity(matrix[-1], matrix[:-1])[0]
+
+# ── KNN boost ──
+def compute_knn_boost(scores: np.ndarray, k: int = 5) -> np.ndarray:
+    if len(scores) < 2:
+        return np.ones(len(scores))
+    X = scores.reshape(-1, 1)
+    k_eff = min(k, len(X))
+    knn = NearestNeighbors(n_neighbors=k_eff, metric="euclidean")
+    knn.fit(X)
+    distances, _ = knn.kneighbors(X)
+    mean_dist = distances.mean(axis=1)
+    return 1.0 - (mean_dist / (mean_dist.max() + 1e-9))
+
+# Patterns regex pour expérience / formation / langues
+PATTERNS_EXPERIENCE = [
+    r'\b(\d+)\s*an[s]?\s*(d\'|de\s*)?(expérience|exp\.?)',
+    r'\b(stage|stagiaire|intern)\b',
+    r'\b(chef de projet|lead|manager|directeur|responsable)\b',
+    r'\b(cdd|cdi|freelance|consultant)\b',
+    r'\b(\d{4})\s*[-–]\s*(\d{4}|\bprésent\b|\bactuel\b)',
+]
+PATTERNS_FORMATION = [
+    r'\b(master|licence|bachelor|bts|dut|bac\+\d|ingénieur|doctorat|phd|mba)\b',
+    r'\b(université|ecole|école|faculté|institut|ensa|esi|usthb|enp)\b',
+    r'\b(diplômé|diplôme|formation|certifi)\b',
+]
+PATTERNS_LANGUES = [
+    r'\b(français|anglais|arabe|espagnol|allemand|italien)\b',
+    r'\b(french|english|arabic|spanish|german)\b',
+    r'\b(bilingue|trilingue|natif|courant|intermédiaire)\b',
+    r'\b(toeic|toefl|ielts|delf|dalf)\b',
+    r'\b(b[12]|c[12]|a[12])\b',
+]
+
+def _pattern_score(texte: str, patterns: list) -> int:
+    t = texte.lower()
+    hits = sum(1 for p in patterns if re.search(p, t))
+    return min(int((hits / len(patterns)) * 100 * 1.8), 95)
+
+def analyser_competences(texte: str, competences_str: str):
+    """Retourne (score, trouvées, manquantes) avec SpaCy si dispo."""
+    keywords = [k.strip().lower() for k in competences_str.split(',') if k.strip()]
+    if not keywords:
+        return 0, [], []
+
+    trouvees, manquantes = [], []
+
+    if SPACY_OK:
+        doc_cv = nlp(texte.lower())
+        cv_lemmas = {token.lemma_ for token in doc_cv}
+        for kw in keywords:
+            doc_kw = nlp(kw)
+            kw_lemmas = [token.lemma_ for token in doc_kw]
+            if all(lm in cv_lemmas for lm in kw_lemmas):
+                trouvees.append(kw.title())
+            else:
+                manquantes.append(kw.title())
+    else:
+        texte_low = texte.lower()
+        for kw in keywords:
+            variantes = [
+                re.escape(kw),
+                re.escape(kw + 's'),
+                re.escape(kw.replace(' ', '-')),
+                re.escape(kw.replace('-', ' ')),
+            ]
+            pat = r'\b(' + '|'.join(variantes) + r')\b'
+            if re.search(pat, texte_low):
+                trouvees.append(kw.title())
+            else:
+                manquantes.append(kw.title())
+
+    ratio = len(trouvees) / len(keywords)
+    score = int(ratio * 85)
+    if ratio >= 0.8:
+        score = min(score + 10, 100)
+    return score, trouvees, manquantes
+
+def generer_points(trouvees, manquantes, score_exp, score_form, score_lang):
+    forts, ameliorer = [], []
+    if trouvees:
+        forts.append(f"Maîtrise de {', '.join(trouvees[:3])}" + (" et plus" if len(trouvees) > 3 else ""))
+    if score_form >= 60:
+        forts.append("Formation académique solide et adaptée au poste")
+    if score_exp >= 60:
+        forts.append("Expérience professionnelle significative")
+    if score_lang >= 70:
+        forts.append("Bonne maîtrise des langues")
+    if manquantes:
+        ameliorer.append(f"Compétences manquantes : {', '.join(manquantes[:3])}" + (" et autres" if len(manquantes) > 3 else ""))
+    if score_exp < 40:
+        ameliorer.append("Expérience professionnelle limitée ou non détaillée")
+    if score_form < 40:
+        ameliorer.append("Formation non précisée ou peu en lien avec le poste")
+    if score_lang < 40:
+        ameliorer.append("Compétences linguistiques non mentionnées")
+    if not forts:
+        forts = ["Candidature soumise à évaluation"]
+    if not ameliorer:
+        ameliorer = ["Continuer à enrichir le CV avec des projets concrets"]
+    return forts[:4], ameliorer[:4]
+
+def evaluer_cv_complet(texte: str, offre: dict, tfidf_score: float) -> dict:
+    """
+    Scoring final combinant :
+    - TF-IDF cosine (similarité globale texte/offre)
+    - Overlap compétences (SpaCy lemmatisation ou regex)
+    - Patterns expérience / formation / langues
+    """
+    comp_str = offre.get('competences', '') or ''
+    offer_text = f"{offre.get('titre','')} {offre.get('description','')} {comp_str}"
+
+    # ── Scores par dimension ──
+    score_comp, trouvees, manquantes = analyser_competences(texte, comp_str)
+    score_exp  = _pattern_score(texte, PATTERNS_EXPERIENCE)
+    score_form = _pattern_score(texte, PATTERNS_FORMATION)
+    score_lang = _pattern_score(texte, PATTERNS_LANGUES)
+
+    # Bonus formation si correspondance avec l'offre
+    formation_cible = offre.get('formation', '') or ''
+    if formation_cible:
+        for mot in re.split(r'[,\s]+', formation_cible.lower()):
+            if mot and len(mot) > 3 and mot in texte.lower():
+                score_form = min(score_form + 15, 100)
+                break
+
+    # Overlap ratio brut
+    keywords = [k.strip() for k in comp_str.split(',') if k.strip()]
+    overlap = len(trouvees) / max(len(keywords), 1)
+
+    # ── Score global ──
+    # TF-IDF : 35% | Compétences overlap : 30% | Expérience : 20% | Formation : 10% | Langues : 5%
+    score_global = int(
+        tfidf_score  * 100 * 0.35 +
+        overlap      * 100 * 0.30 +
+        score_exp         * 0.20 +
+        score_form        * 0.10 +
+        score_lang        * 0.05
+    )
+    score_global = max(0, min(score_global, 100))
+
+    if score_global >= 75:   niveau = "Excellent"
+    elif score_global >= 60: niveau = "Bon profil"
+    elif score_global >= 40: niveau = "Partiel"
+    else:                    niveau = "Insuffisant"
+
+    forts, ameliorer = generer_points(trouvees, manquantes, score_exp, score_form, score_lang)
+
+    return {
+        'score':                  score_global,
+        'score_competences':      score_comp,
+        'score_experience':       score_exp,
+        'score_formation':        score_form,
+        'score_langues':          score_lang,
+        'competences_trouvees':   json.dumps(trouvees, ensure_ascii=False),
+        'competences_manquantes': json.dumps(manquantes, ensure_ascii=False),
+        'points_forts':           json.dumps(forts, ensure_ascii=False),
+        'points_ameliorer':       json.dumps(ameliorer, ensure_ascii=False),
+        'niveau':                 niveau,
+    }
+
+# ══════════════════════════════════════════
+#   ROUTES AUTH
+# ══════════════════════════════════════════
 @app.route('/')
 def index():
     return render_template('index.html')
 
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        email = request.form.get('email', '').strip()
-        password = request.form.get('password', '')
-        conn = get_db_connection()
-        cur = conn.cursor(cursor_factory=RealDictCursor)
-        cur.execute("SELECT * FROM users WHERE email = %s", (email,))
-        user = cur.fetchone()
-        cur.close(); conn.close()
-        if user and check_password_hash(user['password'], password):
-            session['authed'] = True
-            session['user_id'] = user['id']
-            session['nom'] = user['nom']
-            session['email'] = user['email']
-            return redirect(url_for('dashboard'))
-        else:
-            flash("Identifiants incorrects.", "error")
-    return render_template('login.html')
-
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        nom = request.form.get('nom', '').strip()
-        entreprise = request.form.get('entreprise', '').strip()
-        email = request.form.get('email', '').strip()
-        password = request.form.get('password', '')
-        avatar_file = request.files.get('avatar')
-        if not nom or not email or not password:
-            flash("Tous les champs obligatoires doivent être remplis.", "error")
-            return render_template('register.html')
-        avatar_filename = None
-        if avatar_file and avatar_file.filename != '':
-            ext = os.path.splitext(avatar_file.filename)[1].lower()
-            if ext in ['.png', '.jpg', '.jpeg', '.gif']:
-                avatar_filename = f"avatar_{int(datetime.now().timestamp())}{ext}"
-                upload_dir = os.path.join(app.root_path, 'static', 'uploads', 'avatars')
-                os.makedirs(upload_dir, exist_ok=True)
-                avatar_file.save(os.path.join(upload_dir, avatar_filename))
-        conn = get_db_connection()
-        cur = conn.cursor(cursor_factory=RealDictCursor)
+        nom        = request.form.get('nom')
+        entreprise = request.form.get('entreprise')
+        email      = request.form.get('email')
+        password   = generate_password_hash(request.form.get('password'))
+        conn = get_db_connection(); cur = conn.cursor()
         try:
             cur.execute(
-                "INSERT INTO users (nom, entreprise, email, password, avatar) VALUES (%s, %s, %s, %s, %s) RETURNING id;",
-                (nom, entreprise, email, generate_password_hash(password), avatar_filename)
-            )
-            new_user = cur.fetchone()
+                "INSERT INTO users (nom, entreprise, email, password) VALUES (%s,%s,%s,%s);",
+                (nom, entreprise, email, password))
             conn.commit()
-            session['authed'] = True
-            session['user_id'] = new_user['id']
-            session['nom'] = nom
-            session['email'] = email
-            return redirect(url_for('dashboard'))
-        except psycopg2.IntegrityError:
+            flash("Inscription réussie ! Connectez-vous.", "success")
+            return redirect(url_for('login'))
+        except Exception:
             conn.rollback()
-            flash("Cet email est déjà enregistré.", "error")
-        except Exception as e:
-            conn.rollback()
-            flash(f"Erreur : {str(e)}", "error")
+            flash("Cet email est déjà enregistré.", "danger")
         finally:
             cur.close(); conn.close()
     return render_template('register.html')
 
-@app.route('/dashboard')
-@login_required
-def dashboard():
-    conn = get_db_connection()
-    cur = conn.cursor(cursor_factory=RealDictCursor)
-    cur.execute("SELECT * FROM offres WHERE user_id = %s ORDER BY created_at DESC", (session['user_id'],))
-    offres = [dict(r) for r in cur.fetchall()]
-    cur.execute("""
-        SELECT cvs.*, offres.titre as offre_titre
-        FROM cvs
-        JOIN offres ON cvs.offre_id = offres.id
-        WHERE offres.user_id = %s
-        ORDER BY cvs.created_at DESC
-        LIMIT 5
-    """, (session['user_id'],))
-    candidats_recents = [dict(r) for r in cur.fetchall()]
-    cur.close(); conn.close()
-    return render_template('dashboard.html', offres=offres, candidats_recents=candidats_recents)
-
-# ── OFFRES D'EMPLOI ────────────────────────────────────────────────────────
-@app.route('/offres')
-@login_required
-def offres():
-    conn = get_db_connection()
-    cur = conn.cursor(cursor_factory=RealDictCursor)
-    cur.execute("SELECT * FROM offres WHERE user_id = %s ORDER BY created_at DESC", (session['user_id'],))
-    offres_list = [dict(r) for r in cur.fetchall()]
-    cur.close(); conn.close()
-    return render_template('offres.html', offres=offres_list)
-
-@app.route('/creer-offre', methods=['POST'])
-@login_required
-def creer_offre():
-    titre = request.form.get('titre', '').strip()
-    competences = request.form.get('competences', '').strip()
-    description = request.form.get('description', '').strip()
-    experience = request.form.get('experience', '').strip()
-    if not titre or not competences:
-        flash("Le titre et les compétences sont obligatoires.", "error")
-        return redirect(request.referrer or url_for('offres'))
-    conn = get_db_connection()
-    cur = conn.cursor()
-    cur.execute(
-        "INSERT INTO offres (titre, description, competences, experience, user_id) VALUES (%s, %s, %s, %s, %s)",
-        (titre, description, competences, experience, session['user_id'])
-    )
-    conn.commit(); cur.close(); conn.close()
-    flash("Offre publiée avec succès !", "success")
-    return redirect(url_for('offres'))
-
-# ── UPLOAD CV ──────────────────────────────────────────────────────────────
-@app.route('/upload-cv')
-@login_required
-def upload_cv():
-    conn = get_db_connection()
-    cur = conn.cursor(cursor_factory=RealDictCursor)
-    cur.execute("SELECT * FROM offres WHERE user_id = %s ORDER BY created_at DESC", (session['user_id'],))
-    offres = [dict(r) for r in cur.fetchall()]
-    cur.close(); conn.close()
-    return render_template('upload_cv.html', offres=offres)
-
-# ── CANDIDATS ──────────────────────────────────────────────────────────────
-@app.route('/candidats')
-@login_required
-def candidats():
-    conn = get_db_connection()
-    cur = conn.cursor(cursor_factory=RealDictCursor)
-    cur.execute("""
-        SELECT cvs.* FROM cvs
-        JOIN offres ON cvs.offre_id = offres.id
-        WHERE offres.user_id = %s
-        ORDER BY cvs.created_at DESC
-    """, (session['user_id'],))
-    candidats_list = [dict(r) for r in cur.fetchall()]
-    cur.close(); conn.close()
-    return render_template('candidats.html', candidats=candidats_list)
-
-@app.route('/candidats/supprimer/<int:cv_id>', methods=['POST'])
-@login_required
-def supprimer_candidat(cv_id):
-    conn = get_db_connection()
-    cur  = conn.cursor(cursor_factory=RealDictCursor)
-    # Vérifier que le CV appartient bien à l'utilisateur connecté
-    cur.execute("""
-        SELECT cvs.id FROM cvs
-        JOIN offres ON cvs.offre_id = offres.id
-        WHERE cvs.id = %s AND offres.user_id = %s
-    """, (cv_id, session['user_id']))
-    row = cur.fetchone()
-    if row:
-        cur.execute("DELETE FROM cvs WHERE id = %s", (cv_id,))
-        conn.commit()
-        flash("Candidat supprimé avec succès.", "success")
-    else:
-        flash("Candidat introuvable ou accès refusé.", "error")
-    cur.close(); conn.close()
-    return redirect(url_for('candidats'))
-
-# ── MATCHING IA ────────────────────────────────────────────────────────────
-@app.route('/matching')
-@login_required
-def matching():
-    conn = get_db_connection()
-    cur = conn.cursor(cursor_factory=RealDictCursor)
-    cur.execute("SELECT * FROM offres WHERE user_id = %s ORDER BY created_at DESC", (session['user_id'],))
-    offres = [dict(r) for r in cur.fetchall()]
-    cur.close(); conn.close()
-    return render_template('matching.html', offres=offres)
-
-# Garde la compatibilité avec /analyse
-@app.route('/analyse')
-@login_required
-def analyse():
-    return redirect(url_for('matching'))
-
-# ── ANALYSE DIMENSIONS CV ─────────────────────────────────────────────────
-
-def extract_candidate_name(raw_text, filename):
-    """
-    Tente d'extraire le nom du candidat depuis le texte du CV.
-    Stratégies par ordre de priorité :
-    1. Ligne contenant "Nom :" ou "Name :" dans le CV
-    2. Premières lignes du CV (souvent le nom est en haut)
-    3. Nom du fichier PDF nettoyé comme fallback
-    """
-    # Stratégie 1 : pattern "Nom : Prénom NOM" ou "Name: ..."
-    patterns = [
-        r'(?:nom\s*[:\-]\s*)([A-ZÀ-Ÿa-zà-ÿ]+(?:\s+[A-ZÀ-Ÿa-zà-ÿ]+){1,3})',
-        r'(?:name\s*[:\-]\s*)([A-Za-z]+(?:\s+[A-Za-z]+){1,3})',
-        r'(?:prénom\s*[:\-]\s*)([A-ZÀ-Ÿa-zà-ÿ]+(?:\s+[A-ZÀ-Ÿa-zà-ÿ]+){0,2})',
-    ]
-    for pat in patterns:
-        m = re.search(pat, raw_text, re.IGNORECASE)
-        if m:
-            name = m.group(1).strip().title()
-            if 3 < len(name) < 50:
-                return name
-
-    # Stratégie 2 : premières lignes non vides (le nom est souvent en haut du CV)
-    lines = [l.strip() for l in raw_text.split('\n') if l.strip()]
-    for line in lines[:6]:
-        # Ligne courte (2-5 mots), que des lettres/espaces → probablement un nom
-        words = line.split()
-        if 2 <= len(words) <= 4 and all(re.match(r'^[A-ZÀ-Ÿa-zà-ÿ\-]+$', w) for w in words):
-            # Exclure les mots génériques
-            generics = {'curriculum', 'vitae', 'cv', 'resume', 'profil', 'contact', 'coordonnees'}
-            if not any(w.lower() in generics for w in words):
-                return line.strip().title()
-
-    # Stratégie 3 : fallback sur le nom du fichier
-    name = filename.replace('.pdf', '').replace('_', ' ').replace('-', ' ')
-    # Retirer les chiffres et underscores en trop
-    name = re.sub(r'\d+', '', name).strip().title()
-    return name if name else "Candidat inconnu"
-
-def score_competences(cleaned_text, keywords):
-    """Score basé sur les mots-clés de l'offre trouvés dans le CV."""
-    if not keywords:
-        return 0, [], []
-    found     = [kw for kw in keywords if kw in cleaned_text]
-    missing   = [kw for kw in keywords if kw not in cleaned_text]
-    score     = int(len(found) / len(keywords) * 100)
-    return score, found, missing
-
-def score_experience(raw_text):
-    """
-    Détecte les années d'expérience et les mentions de postes/stages.
-    Retourne un score /100 et une liste de détails trouvés.
-    """
-    text_lower = raw_text.lower()
-
-    # Patterns : "3 ans d'expérience", "5 years", "2 ans", "depuis 2019"...
-    exp_patterns = [
-        r'(\d+)\s*ans?\s+d[\'\u2019]exp[eé]rience',
-        r'(\d+)\s*years?\s+of\s+experience',
-        r'(\d+)\s*ans?\s+d[\'\u2019]anciennet[eé]',
-        r'exp[eé]rience\s*[:\-]?\s*(\d+)\s*ans?',
-    ]
-    years_found = []
-    for pat in exp_patterns:
-        for m in re.finditer(pat, text_lower):
-            years_found.append(int(m.group(1)))
-
-    # Mots-clés de postes professionnels
-    job_keywords = [
-        'ingénieur', 'développeur', 'analyste', 'consultant', 'chef de projet',
-        'technicien', 'responsable', 'manager', 'directeur', 'coordinateur',
-        'engineer', 'developer', 'analyst', 'architect', 'lead', 'senior',
-        'stagiaire', 'stage', 'alternance', 'apprentissage', 'intern',
-        'cdi', 'cdd', 'freelance', 'mission',
-    ]
-    job_hits = sum(1 for kw in job_keywords if kw in text_lower)
-
-    # Dates de travail : "jan 2020 – déc 2022", "2018-2021"
-    date_ranges = re.findall(
-        r'(jan|fév|mar|avr|mai|jun|jul|aoû|sep|oct|nov|déc|january|february|march|april|'
-        r'june|july|august|september|october|november|december)[\s\.\-]*\d{4}',
-        text_lower
-    )
-
-    # Calcul du score expérience
-    max_years = max(years_found) if years_found else 0
-    details   = []
-
-    if max_years >= 5:
-        exp_score = 90
-        details.append(f"{max_years} ans d'expérience détectés")
-    elif max_years >= 3:
-        exp_score = 70
-        details.append(f"{max_years} ans d'expérience détectés")
-    elif max_years >= 1:
-        exp_score = 50
-        details.append(f"{max_years} an(s) d'expérience détecté(s)")
-    elif max_years == 0 and (job_hits >= 3 or len(date_ranges) >= 2):
-        exp_score = 40
-        details.append("Postes/missions mentionnés sans durée explicite")
-    elif job_hits >= 1 or len(date_ranges) >= 1:
-        exp_score = 25
-        details.append("Mentions professionnelles limitées")
-    else:
-        exp_score = 10
-        details.append("Aucune expérience professionnelle détectée")
-
-    if 'stage' in text_lower or 'stagiaire' in text_lower or 'intern' in text_lower:
-        details.append("Stage(s) mentionné(s)")
-        exp_score = max(exp_score, 30)
-
-    return min(exp_score, 100), details
-
-def score_formation(raw_text):
-    """
-    Détecte les diplômes et leur niveau.
-    Retourne un score /100 et une liste de diplômes trouvés.
-    """
-    text_lower = raw_text.lower()
-
-    diplomes = {
-        # Niveau doctorat → 100
-        'doctorat': 100, 'phd': 100, 'ph.d': 100, 'thèse': 100,
-        # Master → 90
-        'master': 90, 'mastère': 90, 'm2': 90, 'mba': 90,
-        'diplôme d\'ingénieur': 90, "diplome d'ingenieur": 90,
-        'ingénieur': 85,
-        # Licence / Bachelor → 70
-        'licence': 70, 'bachelor': 70, 'l3': 70, 'bsc': 70,
-        # BTS / DUT / BUT → 55
-        'bts': 55, 'dut': 55, 'but': 55, 'hnd': 55,
-        # Bac → 40
-        'baccalauréat': 40, 'bac': 40, 'lycée': 35,
-        # Certificat / Formation → 30
-        'certification': 30, 'certificat': 30, 'diplôme': 30,
-        'formation': 25,
-    }
-
-    best_score = 0
-    found_diplomes = []
-    for diplome, val in diplomes.items():
-        if diplome in text_lower and val > best_score:
-            best_score = val
-            found_diplomes.append(diplome.title())
-
-    # Universités / grandes écoles
-    ecoles = [
-        'université', 'university', 'école nationale', 'ecole nationale',
-        'école polytechnique', 'ecole polytechnique', 'ens', 'insa',
-        'ummto', 'usthb', 'usto', 'enp', 'esi', 'hmoud',
-        'sorbonne', 'harvard', 'mit', 'stanford',
-    ]
-    ecole_hits = [e for e in ecoles if e in text_lower]
-    if ecole_hits and best_score < 50:
-        best_score = max(best_score, 50)
-        found_diplomes += [e.title() for e in ecole_hits[:2]]
-
-    if best_score == 0:
-        return 10, ["Aucune formation détectée"]
-
-    return min(best_score, 100), list(dict.fromkeys(found_diplomes))[:4]
-
-def score_langues(raw_text):
-    """
-    Détecte les langues et leur niveau.
-    Retourne un score /100 et liste des langues trouvées.
-    """
-    text_lower = raw_text.lower()
-
-    langues_map = {
-        'français': 'Français', 'french': 'Français', 'francais': 'Français',
-        'anglais': 'Anglais',   'english': 'Anglais',
-        'arabe': 'Arabe',       'arabic': 'Arabe',
-        'espagnol': 'Espagnol', 'spanish': 'Espagnol',
-        'allemand': 'Allemand', 'german': 'Allemand',
-        'italien': 'Italien',   'italian': 'Italien',
-        'chinois': 'Chinois',   'chinese': 'Chinois',
-        'portugais': 'Portugais', 'portuguese': 'Portugais',
-        'russe': 'Russe',       'russian': 'Russe',
-    }
-    niveaux_bonus = {
-        'courant': 15, 'bilingue': 20, 'natif': 20, 'native': 20,
-        'fluent': 15, 'professionnel': 12, 'professional': 12,
-        'b2': 10, 'c1': 15, 'c2': 20,
-        'intermédiaire': 5, 'notions': 0, 'débutant': 0,
-    }
-
-    found = []
-    for key, label in langues_map.items():
-        if key in text_lower and label not in found:
-            found.append(label)
-
-    if not found:
-        return 10, []
-
-    # Score de base : nombre de langues
-    base = min(len(found) * 20, 60)
-
-    # Bonus niveaux
-    bonus = sum(v for k, v in niveaux_bonus.items() if k in text_lower)
-    bonus = min(bonus, 40)
-
-    return min(base + bonus, 100), found
-
-def build_points_forts(found_kws, exp_details, diplomes, langues, scores):
-    points = []
-    if scores['competences'] >= 60:
-        points.append(f"Maîtrise de {len(found_kws)} compétence(s) requise(s) : {', '.join(found_kws[:4])}.")
-    if scores['experience'] >= 50:
-        points.append(exp_details[0] if exp_details else "Expérience professionnelle solide.")
-    if scores['formation'] >= 70:
-        points.append(f"Formation de niveau élevé : {', '.join(diplomes[:2])}.")
-    if scores['langues'] >= 40 and langues:
-        points.append(f"Maîtrise linguistique : {', '.join(langues)}.")
-    if not points:
-        points.append("Profil avec des bases à développer.")
-    return points
-
-def build_points_ameliorer(missing_kws, exp_details, scores):
-    points = []
-    if scores['competences'] < 80 and missing_kws:
-        points.append(f"Compétences manquantes : {', '.join(missing_kws[:3])}.")
-    if scores['experience'] < 50:
-        points.append("Expérience professionnelle insuffisante ou non détaillée.")
-    if scores['formation'] < 50:
-        points.append("Formation académique peu ou mal renseignée.")
-    if scores['langues'] < 40:
-        points.append("Peu de langues mentionnées ou niveaux non précisés.")
-    if not points:
-        points.append("Continuer à développer une veille technologique active.")
-    return points
-
-@app.route('/match', methods=['POST'])
-@login_required
-def match():
-    offre_id = request.form.get('offre_id')
-    files    = request.files.getlist('cv_files')
-    if not offre_id or not files or files[0].filename == '':
-        flash("Veuillez sélectionner une offre et ajouter au moins un fichier PDF.", "error")
-        return redirect(url_for('matching'))
-
-    conn = get_db_connection()
-    cur  = conn.cursor(cursor_factory=RealDictCursor)
-    cur.execute("SELECT * FROM offres WHERE id = %s AND user_id = %s", (offre_id, session['user_id']))
-    offer_row = cur.fetchone()
-    offer = dict(offer_row) if offer_row else None
-    if not offer:
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        email    = request.form.get('email')
+        password = request.form.get('password')
+        conn = get_db_connection(); cur = conn.cursor()
+        cur.execute("SELECT * FROM users WHERE email = %s;", (email,))
+        user = cur.fetchone()
         cur.close(); conn.close()
-        flash("Offre introuvable.", "error")
-        return redirect(url_for('matching'))
-
-    try:
-        # Mots-clés de l'offre
-        keywords = [clean_text(k) for k in offer['competences'].split(',') if clean_text(k)]
-
-        # Niveau d'expérience requis par l'offre (ex: "3 ans", "junior", "senior")
-        exp_requise = clean_text(offer.get('experience') or '')
-
-        candidats = []
-        for f in files:
-            if not f.filename.lower().endswith('.pdf'):
-                continue
-            stream   = f.read()
-            raw_text = extract_text_from_pdf(stream)
-            cleaned  = clean_text(raw_text)
-            if not cleaned:
-                continue
-
-            # ── Scores par dimension ──────────────────────────────
-            s_comp,  found_kws, missing_kws = score_competences(cleaned, keywords)
-            s_exp,   exp_details            = score_experience(raw_text)
-            s_form,  diplomes               = score_formation(raw_text)
-            s_lang,  langues                = score_langues(raw_text)
-
-            # ── Score global pondéré ──────────────────────────────
-            # Compétences 40% | Expérience 30% | Formation 20% | Langues 10%
-            global_score = int(
-                s_comp * 0.40 +
-                s_exp  * 0.30 +
-                s_form * 0.20 +
-                s_lang * 0.10
-            )
-            global_score = min(100, max(0, global_score))
-
-            # ── Points forts / à améliorer ────────────────────────
-            dim_scores = {
-                'competences': s_comp,
-                'experience':  s_exp,
-                'formation':   s_form,
-                'langues':     s_lang,
-            }
-            points_forts    = build_points_forts(found_kws, exp_details, diplomes, langues, dim_scores)
-            points_ameliorer = build_points_ameliorer(missing_kws, exp_details, dim_scores)
-
-            nom_candidat = extract_candidate_name(raw_text, f.filename)
-            candidats.append({
-                "fichier":          secure_filename(f.filename),
-                "nom_candidat":     nom_candidat,
-                "texte_brut":       raw_text,
-                "global_score":     global_score,
-                "score_competences": s_comp,
-                "score_experience":  s_exp,
-                "score_formation":   s_form,
-                "score_langues":     s_lang,
-                "competences_trouvees": [kw.title() for kw in found_kws],
-                "competences_manquantes": [kw.title() for kw in missing_kws],
-                "exp_details":      exp_details,
-                "diplomes":         diplomes,
-                "langues":          langues,
-                "points_forts":     points_forts,
-                "points_ameliorer": points_ameliorer,
-                "niveau":           "À évaluer",
-            })
-
-        if not candidats:
-            cur.close(); conn.close()
-            flash("Aucun texte extrait des PDF fournis.", "error")
-            return redirect(url_for('matching'))
-
-        # ── KNN boost si plusieurs candidats ─────────────────────
-        if len(candidats) >= 2:
-            raw_scores = np.array([c["global_score"] / 100.0 for c in candidats])
-            boost = compute_knn_rank(raw_scores)
-            for i, c in enumerate(candidats):
-                c["global_score"] = min(100, max(0, int(
-                    (c["global_score"] / 100 * 0.85 + boost[i] * 0.15) * 100
-                )))
-
-        # ── Tri et rang ───────────────────────────────────────────
-        candidats.sort(key=lambda x: x["global_score"], reverse=True)
-        for rank, c in enumerate(candidats, 1):
-            c["rang"] = rank
-            s = c["global_score"]
-            c["niveau"] = (
-                "Excellent"   if s >= 75 else
-                "Bon profil"  if s >= 50 else
-                "Partiel"     if s >= 30 else
-                "Insuffisant"
-            )
-            cur.execute(
-                "INSERT INTO cvs (nom_fichier, contenu, score, offre_id) VALUES (%s, %s, %s, %s)",
-                (c["fichier"], c["texte_brut"], c["global_score"], offre_id)
-            )
-
-        conn.commit()
-        return render_template("resultats.html", offer=offer, candidats=candidats)
-
-    except Exception as e:
-        conn.rollback()
-        flash(f"Erreur lors du matching : {str(e)}", "error")
-        return redirect(url_for('matching'))
-    finally:
-        cur.close(); conn.close()
+        if user and check_password_hash(user['password'], password):
+            session['user_id']         = user['id']
+            session['user_nom']        = user['nom']
+            session['user_entreprise'] = user['entreprise']
+            return redirect(url_for('dashboard'))
+        flash("Identifiants incorrects.", "danger")
+    return render_template('login.html')
 
 @app.route('/logout')
 def logout():
     session.clear()
-    return redirect(url_for('login'))
+    return redirect(url_for('index'))
+
+def auth_required():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    return None
+
+# ══════════════════════════════════════════
+#   DASHBOARD
+# ══════════════════════════════════════════
+@app.route('/dashboard')
+def dashboard():
+    r = auth_required()
+    if r: return r
+    conn = get_db_connection(); cur = conn.cursor()
+    cur.execute("SELECT * FROM offres WHERE user_id=%s ORDER BY created_at DESC;", (session['user_id'],))
+    offres = cur.fetchall()
+    cur.execute("SELECT COUNT(*) as n FROM offres WHERE user_id=%s;", (session['user_id'],))
+    total_offres = cur.fetchone()['n']
+    cur.execute("""SELECT COUNT(*) as n FROM cvs c
+                   JOIN offres o ON c.offre_id=o.id WHERE o.user_id=%s;""", (session['user_id'],))
+    total_cvs = cur.fetchone()['n']
+    cur.execute("""SELECT AVG(c.score) as avg FROM cvs c
+                   JOIN offres o ON c.offre_id=o.id WHERE o.user_id=%s;""", (session['user_id'],))
+    avg = cur.fetchone()['avg']
+    taux_match = round(avg) if avg else 0
+    cur.close(); conn.close()
+    return render_template('dashboard.html', offres=offres,
+                           total_offres=total_offres, total_cvs=total_cvs, taux_match=taux_match)
+
+# ══════════════════════════════════════════
+#   OFFRES
+# ══════════════════════════════════════════
+@app.route('/offres', methods=['GET', 'POST'])
+def offres():
+    r = auth_required()
+    if r: return r
+    conn = get_db_connection(); cur = conn.cursor()
+    if request.method == 'POST':
+        cur.execute("""INSERT INTO offres (titre,competences,experience,formation,description,user_id)
+                       VALUES (%s,%s,%s,%s,%s,%s);""",
+                    (request.form.get('titre'), request.form.get('competences'),
+                     request.form.get('experience'), request.form.get('formation',''),
+                     request.form.get('description'), session['user_id']))
+        conn.commit()
+        flash("Offre publiée avec succès !", "success")
+        cur.close(); conn.close()
+        return redirect(url_for('offres'))
+    cur.execute("SELECT * FROM offres WHERE user_id=%s ORDER BY created_at DESC;", (session['user_id'],))
+    mes_offres = cur.fetchall()
+    cur.close(); conn.close()
+    return render_template('offres.html', offres=mes_offres)
+
+@app.route('/creer-offre', methods=['POST'])
+def creer_offre():
+    r = auth_required()
+    if r: return r
+    conn = get_db_connection(); cur = conn.cursor()
+    try:
+        cur.execute("""INSERT INTO offres (titre,competences,experience,formation,description,user_id)
+                       VALUES (%s,%s,%s,%s,%s,%s);""",
+                    (request.form.get('titre'), request.form.get('competences'),
+                     request.form.get('experience'), request.form.get('formation',''),
+                     request.form.get('description'), session['user_id']))
+        conn.commit()
+        flash("Offre publiée !", "success")
+    finally:
+        cur.close(); conn.close()
+    return redirect(url_for('offres'))
+
+# ══════════════════════════════════════════
+#   MATCHING IA (cœur de l'application)
+# ══════════════════════════════════════════
+@app.route('/matching', methods=['GET', 'POST'])
+def matching():
+    r = auth_required()
+    if r: return r
+
+    if request.method == 'POST':
+        offre_id       = request.form.get('offre_id')
+        files          = [f for f in request.files.getlist('cvFiles')
+                          if f and f.filename != '' and allowed_file(f.filename)]
+        existing_cvs   = request.form.getlist('existing_cvs')  # fichiers déjà uploadés
+
+        if not offre_id:
+            flash("Veuillez sélectionner une offre.", "danger")
+            return redirect(url_for('matching'))
+        if not files and not existing_cvs:
+            flash("Veuillez sélectionner au moins un candidat ou uploader un CV.", "danger")
+            return redirect(url_for('matching'))
+
+        conn = get_db_connection(); cur = conn.cursor()
+        cur.execute("SELECT * FROM offres WHERE id=%s AND user_id=%s;",
+                    (offre_id, session['user_id']))
+        offre = cur.fetchone()
+        if not offre:
+            flash("Offre introuvable.", "danger")
+            cur.close(); conn.close()
+            return redirect(url_for('matching'))
+
+        offre_dict  = dict(offre)
+        offer_text  = f"{offre_dict.get('titre','')} {offre_dict.get('description','')} {offre_dict.get('competences','')}"
+
+        # ── Étape 1 : Extraire tous les textes ──
+        candidats_data = []
+
+        # Nouveaux CVs uploadés
+        for file in files:
+            filename  = secure_filename(file.filename)
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(file_path)
+            texte = extract_pdf_text(file_path)
+            if not texte.strip():
+                flash(f"⚠️ {filename} : PDF non lisible (scanné sans OCR). Ignoré.", "warning")
+                continue
+            candidats_data.append({'filename': filename, 'texte': texte})
+
+        # CVs existants sélectionnés depuis la liste
+        for nom_fichier in existing_cvs:
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], nom_fichier)
+            if os.path.exists(file_path):
+                texte = extract_pdf_text(file_path)
+                if texte.strip():
+                    candidats_data.append({'filename': nom_fichier, 'texte': texte})
+            else:
+                # Récupérer le contenu depuis la BDD si le fichier physique n'existe plus
+                cur.execute("SELECT contenu, nom_candidat FROM cvs WHERE nom_fichier=%s LIMIT 1;", (nom_fichier,))
+                row = cur.fetchone()
+                if row and row['contenu']:
+                    candidats_data.append({'filename': nom_fichier, 'texte': row['contenu']})
+
+        if not candidats_data:
+            flash("Aucun texte extrait des CVs fournis.", "danger")
+            cur.close(); conn.close()
+            return redirect(url_for('matching'))
+
+        # ── Étape 2 : TF-IDF cosine sur tous les CVs en même temps ──
+        all_texts   = [c['texte'] for c in candidats_data]
+        tfidf_sims  = compute_tfidf_cosine(all_texts, offer_text)
+
+        # ── Étape 3 : KNN boost de ranking ──
+        if len(tfidf_sims) >= 2:
+            knn_boost = compute_knn_boost(tfidf_sims)
+            tfidf_final = tfidf_sims * 0.8 + knn_boost * 0.2
+        else:
+            tfidf_final = tfidf_sims
+
+        # ── Étape 4 : Scoring complet par candidat ──
+        resultats_liste = []
+        for i, c in enumerate(candidats_data):
+            res = evaluer_cv_complet(c['texte'], offre_dict, float(tfidf_final[i]))
+            nom_candidat = extraire_nom_candidat(c['texte'], c['filename'])
+            resultats_liste.append({**res, 'filename': c['filename'],
+                                    'texte': c['texte'], 'nom_candidat': nom_candidat})
+
+        # ── Étape 5 : Tri final par score ──
+        resultats_liste.sort(key=lambda x: x['score'], reverse=True)
+
+        # ── Étape 6 : Sauvegarde en BDD ──
+        for idx, res in enumerate(resultats_liste):
+            cur.execute("""
+                INSERT INTO cvs (
+                    nom_fichier, contenu, score,
+                    score_competences, score_experience, score_formation, score_langues,
+                    competences_trouvees, competences_manquantes,
+                    points_forts, points_ameliorer,
+                    niveau, nom_candidat, offre_id
+                ) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);
+            """, (
+                res['filename'], res['texte'][:5000], res['score'],
+                res['score_competences'], res['score_experience'],
+                res['score_formation'],  res['score_langues'],
+                res['competences_trouvees'],  res['competences_manquantes'],
+                res['points_forts'],          res['points_ameliorer'],
+                res['niveau'], res['nom_candidat'], offre_id
+            ))
+        conn.commit()
+        cur.close(); conn.close()
+
+        flash(f"{len(resultats_liste)} CV(s) analysé(s) avec succès !", "success")
+        return redirect(url_for('resultats', offre_id=offre_id))
+
+    # GET
+    conn = get_db_connection(); cur = conn.cursor()
+    cur.execute("SELECT id,titre,competences FROM offres WHERE user_id=%s ORDER BY created_at DESC;",
+                (session['user_id'],))
+    mes_offres = cur.fetchall()
+    # Candidats déjà analysés (CV en BDD), distincts par nom_candidat + nom_fichier
+    cur.execute("""
+        SELECT DISTINCT ON (c.nom_fichier) c.nom_fichier, c.nom_candidat, c.score, c.offre_id
+        FROM cvs c
+        JOIN offres o ON c.offre_id = o.id
+        WHERE o.user_id = %s
+        ORDER BY c.nom_fichier, c.score DESC;
+    """, (session['user_id'],))
+    candidats_existants = cur.fetchall()
+    cur.close(); conn.close()
+    return render_template('matching.html', offres=mes_offres, candidats_existants=candidats_existants)
+
+# ══════════════════════════════════════════
+#   RÉSULTATS
+# ══════════════════════════════════════════
+@app.route('/resultats/<int:offre_id>')
+def resultats(offre_id):
+    r = auth_required()
+    if r: return r
+    conn = get_db_connection(); cur = conn.cursor()
+    cur.execute("SELECT * FROM offres WHERE id=%s AND user_id=%s;",
+                (offre_id, session['user_id']))
+    offre = cur.fetchone()
+    if not offre:
+        cur.close(); conn.close()
+        return "Accès refusé.", 403
+    cur.execute("SELECT * FROM cvs WHERE offre_id=%s ORDER BY score DESC;", (offre_id,))
+    rows = cur.fetchall()
+    cur.close(); conn.close()
+
+    candidats = []
+    for idx, row in enumerate(rows):
+        candidats.append({
+            'rang':                  idx + 1,
+            'nom_candidat':          row['nom_candidat'] or row['nom_fichier'].replace('.pdf','').replace('_',' ').title(),
+            'fichier':               row['nom_fichier'],
+            'global_score':          row['score'],
+            'score_competences':     row['score_competences'],
+            'score_experience':      row['score_experience'],
+            'score_formation':       row['score_formation'],
+            'score_langues':         row['score_langues'],
+            'competences_trouvees':  json.loads(row['competences_trouvees'] or '[]'),
+            'competences_manquantes':json.loads(row['competences_manquantes'] or '[]'),
+            'points_forts':          json.loads(row['points_forts'] or '[]'),
+            'points_ameliorer':      json.loads(row['points_ameliorer'] or '[]'),
+            'niveau':                row['niveau'],
+        })
+    return render_template('resultats.html', candidats=candidats, offre=dict(offre))
+
+# ══════════════════════════════════════════
+#   CANDIDATS
+# ══════════════════════════════════════════
+@app.route('/candidats')
+def candidats():
+    r = auth_required()
+    if r: return r
+    conn = get_db_connection(); cur = conn.cursor()
+    cur.execute("""
+        SELECT c.id, c.nom_fichier, c.nom_candidat, c.score, c.niveau, c.created_at,
+               o.titre as offre_titre
+        FROM cvs c
+        JOIN offres o ON c.offre_id=o.id
+        WHERE o.user_id=%s
+        ORDER BY c.score DESC;
+    """, (session['user_id'],))
+    mes_candidats = cur.fetchall()
+    cur.close(); conn.close()
+    return render_template('candidats.html', candidats=mes_candidats)
+
+@app.route('/candidats/supprimer/<int:candidat_id>', methods=['POST'])
+def supprimer_candidat(candidat_id):
+    r = auth_required()
+    if r: return r
+    conn = get_db_connection(); cur = conn.cursor()
+    try:
+        cur.execute("""DELETE FROM cvs c USING offres o
+                       WHERE c.offre_id=o.id AND c.id=%s AND o.user_id=%s;""",
+                    (candidat_id, session['user_id']))
+        conn.commit()
+        flash("Candidat supprimé.", "success")
+    except Exception as e:
+        conn.rollback()
+        flash("Erreur lors de la suppression.", "danger")
+    finally:
+        cur.close(); conn.close()
+    return redirect(url_for('candidats'))
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

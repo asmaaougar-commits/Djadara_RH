@@ -112,6 +112,79 @@
     opacity: 1;
   }
 
+  /* ── Candidats existants ── */
+  .existing-section {
+    margin-bottom: 24px;
+  }
+  .existing-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .existing-badge {
+    font-size: 0.72rem;
+    font-weight: 700;
+    background: rgba(108,92,231,0.1);
+    color: var(--accent);
+    padding: 3px 10px;
+    border-radius: 20px;
+  }
+  .existing-card {
+    background: var(--white);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    cursor: pointer;
+    transition: var(--transition);
+    position: relative;
+  }
+  .existing-card:hover {
+    border-color: var(--accent-m);
+    box-shadow: var(--shadow-md);
+  }
+  .existing-card.selected {
+    border-color: var(--accent);
+    background: var(--accent-l);
+    box-shadow: 0 0 0 3px rgba(108,92,231,0.12);
+  }
+  .existing-card .check-icon {
+    margin-left: auto;
+    color: var(--accent);
+    font-size: 0.85rem;
+    opacity: 0;
+    transition: var(--transition);
+  }
+  .existing-card.selected .check-icon { opacity: 1; }
+
+  .score-dot {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    margin-right: 5px;
+  }
+
+  /* Séparateur ou */
+  .or-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 20px 0;
+    color: var(--muted);
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+  .or-divider::before,
+  .or-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
   /* Launch button */
   .btn-launch {
     display: flex;
@@ -140,37 +213,33 @@
   }
   .btn-launch i { font-size: 1rem; }
 
-  .launch-center {
-    text-align: center;
-  }
+  .launch-center { text-align: center; }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="matching-wrapper">
 
-  <!-- Offre sélectionnée -->
   <div class="offre-banner">
     <div class="label">Offre sélectionnée</div>
     <h2 id="offreTitre">—</h2>
     <div class="company" id="offreCompany"></div>
   </div>
 
-  <!-- Choix d'offre (caché, utilisé pour pré-remplir) -->
-  <form action="/match" method="POST" enctype="multipart/form-data" id="matchForm">
+  <form action="{{ url_for('matching') }}" method="POST" enctype="multipart/form-data" id="matchForm">
     <input type="hidden" name="offre_id" id="offreIdInput" value="">
 
-    <!-- Sélecteur d'offre inline (si pas déjà sélectionné) -->
+    <!-- ── Étape 1 : Choisir une offre ── -->
     <div id="offresStep" style="margin-bottom: 24px; display: {% if not request.args.get('offre_id') %}block{% else %}none{% endif %};">
       <div class="section-label">Choisir une offre d'emploi</div>
       <div class="candidat-grid">
         {% for offre in offres %}
-        <label class="candidat-card" onclick="selectOffre('{{ offre.id }}', '{{ offre.titre }}', '{{ offre.experience or '' }}')">
+        <label class="candidat-card" onclick="selectOffre(event, this)" data-id="{{ offre.id }}" data-titre="{{ offre.titre }}" data-competences="{{ offre.competences }}">
           <input type="radio" name="_offre_pick" value="{{ offre.id }}">
           <div class="candidat-avatar"><i class="fa-solid fa-briefcase"></i></div>
           <div class="candidat-info">
             <div class="name">{{ offre.titre }}</div>
-            <div class="score-cv">{{ offre.competences[:40] }}{% if offre.competences|length > 40 %}…{% endif %}</div>
+            <div class="score-cv">{{ (offre.competences or '')[:40] }}{% if (offre.competences or '')|length > 40 %}…{% endif %}</div>
           </div>
           <i class="fa-solid fa-chevron-right candidat-arrow"></i>
         </label>
@@ -178,11 +247,47 @@
       </div>
     </div>
 
-    <!-- Choisir candidat(s) / uploader CVs -->
+    <!-- ── Étape 2 : Candidats ── -->
     <div id="candidatsStep">
       <div class="section-label">Choisir un candidat</div>
 
-      <!-- Upload zone -->
+      <!-- Candidats déjà uploadés -->
+      {% if candidats_existants %}
+      <div class="existing-section">
+        <div class="existing-header">
+          <span style="font-size:0.88rem; font-weight:600; color:var(--muted);">CVs déjà analysés</span>
+          <span class="existing-badge">{{ candidats_existants|length }} disponible{{ 's' if candidats_existants|length > 1 }}</span>
+        </div>
+        <div class="candidat-grid" id="existingGrid">
+          {% for c in candidats_existants %}
+          <div class="existing-card" onclick="toggleExisting(this, '{{ c.nom_fichier }}')" data-fichier="{{ c.nom_fichier }}">
+            <div class="candidat-avatar" style="background:rgba(16,185,129,0.1); color:#10B981;">
+              <i class="fa-regular fa-file-pdf"></i>
+            </div>
+            <div class="candidat-info">
+              <div class="name">{{ c.nom_candidat or c.nom_fichier.replace('.pdf','') }}</div>
+              <div class="score-cv">
+                <span class="score-dot" style="background:
+                  {% if c.score >= 75 %}#10B981
+                  {% elif c.score >= 50 %}#6C5CE7
+                  {% elif c.score >= 30 %}#F59E0B
+                  {% else %}#EF4444{% endif %};"></span>
+                Score CV : {{ c.score }}/100
+              </div>
+            </div>
+            <i class="fa-solid fa-check check-icon"></i>
+          </div>
+          {% endfor %}
+        </div>
+
+        <!-- Input caché pour les fichiers existants sélectionnés -->
+        <div id="existingInputs"></div>
+
+        <div class="or-divider">ou uploader un nouveau CV</div>
+      </div>
+      {% endif %}
+
+      <!-- Zone drag & drop pour nouveaux CVs -->
       <div id="dropZone" style="border: 2px dashed var(--border2); background: var(--slate-50); border-radius: var(--radius-lg); padding: 40px 24px; text-align: center; cursor: pointer; transition: var(--transition); margin-bottom: 16px;">
         <div style="width: 56px; height: 56px; background: var(--white); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-sm); margin: 0 auto 14px; color: var(--accent); font-size: 1.4rem;">
           <i class="fa-solid fa-folder-open"></i>
@@ -190,14 +295,12 @@
         <p style="font-weight: 700; font-size: 0.95rem; margin-bottom: 4px;">Glissez-déposez vos CV ici</p>
         <p style="color: var(--muted); font-size: 0.82rem; margin-bottom: 14px;">Format PDF · Max. 10 fichiers</p>
         <span class="btn btn-secondary" style="padding: 8px 16px; font-size: 0.82rem;">Parcourir</span>
-        <input type="file" name="cv_files" id="cvFiles" multiple accept=".pdf" style="display:none;">
+        <input type="file" name="cvFiles" id="cvFiles" multiple accept=".pdf" style="display:none;">
       </div>
 
-      <!-- File list preview (like candidat cards) -->
       <div id="fileGrid" class="candidat-grid" style="display:none;"></div>
     </div>
 
-    <!-- Launch button -->
     <div class="launch-center" style="margin-top: 32px;">
       <button type="submit" class="btn-launch" id="launchBtn">
         <i class="fa-solid fa-wand-magic-sparkles"></i> Lancer le matching IA
@@ -211,24 +314,62 @@
   const fileInput = document.getElementById('cvFiles');
   const fileGrid  = document.getElementById('fileGrid');
 
-  // Offre selection
-  function selectOffre(id, titre, company) {
+  // ── Sélection offre ──
+  function selectOffre(e, el) {
+    const id = el.dataset.id;
+    const titre = el.dataset.titre || '';
+    const company = el.dataset.competences || '';
     document.getElementById('offreIdInput').value = id;
     document.getElementById('offreTitre').textContent = titre;
     document.getElementById('offreCompany').textContent = company;
     document.querySelectorAll('#offresStep .candidat-card').forEach(c => c.classList.remove('selected'));
-    event.currentTarget.classList.add('selected');
+    e.currentTarget.classList.add('selected');
   }
 
-  // Pre-fill from URL param if provided
+  // ── Sélection candidat existant ──
+  // Stocke les noms de fichiers sélectionnés pour les passer en hidden inputs
+  var selectedExisting = new Set();
+
+  function toggleExisting(el, fichier) {
+    el.classList.toggle('selected');
+    if (el.classList.contains('selected')) {
+      selectedExisting.add(fichier);
+    } else {
+      selectedExisting.delete(fichier);
+    }
+    renderExistingInputs();
+  }
+
+  function renderExistingInputs() {
+    var container = document.getElementById('existingInputs');
+    if (!container) return;
+    container.innerHTML = '';
+    selectedExisting.forEach(function(f) {
+      var inp = document.createElement('input');
+      inp.type = 'hidden';
+      inp.name = 'existing_cvs';
+      inp.value = f;
+      container.appendChild(inp);
+    });
+  }
+
+  // Pre-fill from URL param
   const urlParams = new URLSearchParams(window.location.search);
   const preId = urlParams.get('offre_id');
   if (preId) {
     document.getElementById('offreIdInput').value = preId;
     document.getElementById('offresStep').style.display = 'none';
+    window.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('#offresStep .candidat-card').forEach(card => {
+        const input = card.querySelector('input[type="radio"]');
+        if (input && input.value == preId) {
+          document.getElementById('offreTitre').textContent = card.querySelector('.name').textContent;
+        }
+      });
+    });
   }
 
-  // Drop zone
+  // ── Drag & Drop ──
   dropZone.addEventListener('click', () => fileInput.click());
   fileInput.addEventListener('change', () => handleFiles(fileInput.files));
 
@@ -247,8 +388,13 @@
     });
   });
   dropZone.addEventListener('drop', e => {
-    fileInput.files = e.dataTransfer.files;
-    handleFiles(e.dataTransfer.files);
+    e.preventDefault();
+    if (e.dataTransfer.files.length > 0) {
+      const dataTransfer = new DataTransfer();
+      for (let file of e.dataTransfer.files) dataTransfer.items.add(file);
+      fileInput.files = dataTransfer.files;
+      handleFiles(fileInput.files);
+    }
   });
 
   function handleFiles(files) {
@@ -271,5 +417,21 @@
       fileGrid.appendChild(card);
     }
   }
+
+  // ── Validation avant envoi ──
+  document.getElementById('matchForm').addEventListener('submit', function(e) {
+    const offreId = document.getElementById('offreIdInput').value;
+    if (!offreId) {
+      e.preventDefault();
+      alert("Veuillez d'abord sélectionner une offre d'emploi.");
+      return;
+    }
+    const hasNewFiles = fileInput.files && fileInput.files.length > 0;
+    const hasExisting = selectedExisting.size > 0;
+    if (!hasNewFiles && !hasExisting) {
+      e.preventDefault();
+      alert("Veuillez sélectionner au moins un candidat ou uploader un CV.");
+    }
+  });
 </script>
 {% endblock %}

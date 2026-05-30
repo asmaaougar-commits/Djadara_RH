@@ -1238,3 +1238,173 @@ input[type="range"]:focus {
 }
 
 .main-content.shifted { margin-left: 260px; }
+
+
+/* ══════════════════════════════════════════
+   DARK MODE
+   Toggle via <html data-theme="dark">
+══════════════════════════════════════════ */
+
+[data-theme="dark"] {
+  /* Brand stays the same */
+  --accent:      #7C6FF0;
+  --accent-h:    #6A5FDD;
+  --accent-m:    rgba(124, 111, 240, 0.35);
+  --accent-l:    rgba(124, 111, 240, 0.12);
+
+  /* Neutrals (inverted) */
+  --bg:          #0F1117;
+  --white:       #1A1D2E;
+  --text:        #E8EAF2;
+  --muted:       #6B7280;
+  --muted-l:     #374151;
+  --border:      #252838;
+  --border2:     #2E3148;
+
+  /* Semantic colours keep hue, adjusted lightness */
+  --green-l:     rgba(0, 184, 148, 0.15);
+  --blue-l:      rgba(9, 132, 227, 0.15);
+  --red-l:       rgba(214, 48, 49, 0.15);
+  --amber-l:     rgba(225, 112, 85, 0.15);
+  --orange-l:    rgba(243, 156, 18, 0.15);
+
+  /* Slate tokens */
+  --slate-50:    #111827;
+  --slate-100:   #1F2937;
+  --slate-200:   #374151;
+  --slate-400:   #6B7280;
+  --slate-600:   #9CA3AF;
+  --slate-700:   #D1D5DB;
+
+  /* Shadows (darker) */
+  --shadow-sm:   0 1px 4px rgba(0, 0, 0, 0.4);
+  --shadow-md:   0 4px 16px rgba(0, 0, 0, 0.5);
+  --shadow-lg:   0 12px 40px rgba(0, 0, 0, 0.6);
+}
+
+/* Body dark bg */
+[data-theme="dark"] body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* Sidebar dark */
+[data-theme="dark"] .sidebar {
+  background: var(--white);
+  border-right-color: var(--border);
+}
+
+[data-theme="dark"] .sidebar-brand {
+  border-bottom-color: var(--border);
+}
+
+[data-theme="dark"] .brand-name { color: var(--text); }
+
+/* Cards dark */
+[data-theme="dark"] .card {
+  background: var(--white);
+  border-color: var(--border);
+}
+
+/* Buttons dark */
+[data-theme="dark"] .btn-secondary {
+  background: var(--slate-100);
+  border-color: var(--border);
+  color: var(--text);
+}
+[data-theme="dark"] .btn-secondary:hover { background: var(--border); }
+
+[data-theme="dark"] .btn-ghost {
+  border-color: var(--border);
+  color: var(--muted);
+}
+[data-theme="dark"] .btn-ghost:hover { background: var(--slate-100); color: var(--text); }
+
+/* Inputs dark */
+[data-theme="dark"] .field input,
+[data-theme="dark"] .field select,
+[data-theme="dark"] .field textarea {
+  background: var(--slate-100);
+  border-color: var(--border);
+  color: var(--text);
+}
+[data-theme="dark"] .field input::placeholder,
+[data-theme="dark"] .field textarea::placeholder { color: var(--muted); }
+[data-theme="dark"] .field input:focus,
+[data-theme="dark"] .field select:focus,
+[data-theme="dark"] .field textarea:focus {
+  border-color: var(--accent);
+  background: var(--white);
+}
+
+/* Modals dark */
+[data-theme="dark"] .modal,
+[data-theme="dark"] .modal-box {
+  background: var(--white);
+  border: 1px solid var(--border);
+}
+[data-theme="dark"] .modal-header,
+[data-theme="dark"] .modal-footer { border-color: var(--border); }
+
+/* Drop zone dark */
+[data-theme="dark"] #dropZone {
+  background: var(--slate-100);
+  border-color: var(--border2);
+}
+
+/* Table / list rows dark */
+[data-theme="dark"] .offer-row,
+[data-theme="dark"] .analyse-row,
+[data-theme="dark"] .candidat-card {
+  background: var(--white);
+  border-color: var(--border);
+}
+
+/* Login card dark */
+[data-theme="dark"] .login-card {
+  background: var(--white);
+  border-color: var(--border);
+}
+
+[data-theme="dark"] .login-outer {
+  background: radial-gradient(ellipse 100% 80% at 20% 10%,
+    rgba(124, 111, 240, 0.10) 0%,
+    rgba(255, 51, 102, 0.05) 50%,
+    transparent 80%);
+}
+
+/* Flash dark */
+[data-theme="dark"] .flash { background: var(--white); }
+
+/* Overlay backdrop dark */
+[data-theme="dark"] .modal-overlay {
+  background: rgba(0, 0, 0, 0.65);
+}
+
+/* Scrollbar (webkit) */
+[data-theme="dark"] ::-webkit-scrollbar { width: 6px; }
+[data-theme="dark"] ::-webkit-scrollbar-track { background: var(--bg); }
+[data-theme="dark"] ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+/* ── Dark Mode Toggle Button ── */
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.825rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  width: 100%;
+}
+.theme-toggle:hover {
+  background: var(--accent-l);
+  color: var(--accent);
+  border-color: var(--accent-m);
+}
+.theme-toggle i { font-size: 0.9rem; width: 16px; text-align: center; }
