@@ -1,0 +1,43 @@
+{% extends "candidat/base.html" %}
+{% block title %}Offres — Yassir RH{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Offres d’emploi</h1>
+    <p>Choisissez une offre et postulez</p>
+  </div>
+</div>
+
+{% if offres %}
+  <div class="container" style="max-width:980px;">
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      {% for o in offres %}
+        <div style="background:rgba(255,255,255,0.95);border:1px solid rgba(226,232,240,1);border-radius:14px;padding:16px 18px;">
+          <div style="font-weight:800;color:#0F172A;">{{ o.titre }}</div>
+          <div style="color:#64748B;font-size:0.85rem;margin-top:4px;">
+            {{ o.entreprise_nom }} • {{ o.localisation }} • {{ o.type_contrat }}
+          </div>
+          <div style="margin-top:8px;color:#475569;font-size:0.92rem;">
+            {{ o.description[:240] }}{% if o.description|length > 240 %}…{% endif %}
+          </div>
+          <div style="display:flex;gap:10px;align-items:center;margin-top:12px;">
+            {% if o.deja_postule %}
+              <span style="color:#10B981;font-weight:800;font-size:0.85rem;">Déjà postulé</span>
+            {% else %}
+              <form method="POST" action="{{ url_for('candidat_postuler', offre_id=o.id) }}">
+                <button type="submit" class="btn btn-primary">
+                  Postuler
+                </button>
+              </form>
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+{% else %}
+  <div class="card"><div style="text-align:center;padding:48px 16px;color:#64748B;">Aucune offre active.</div></div>
+{% endif %}
+{% endblock %}
+

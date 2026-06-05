@@ -1,0 +1,74 @@
+{% extends "admin/base.html" %}
+{% block title %}Offres — Djadara RH Admin{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <div class="eyebrow">Gestion</div>
+    <h1>Offres d'emploi</h1>
+    <p>{{ offres|length }} offre{{ 's' if offres|length != 1 else '' }} au total</p>
+  </div>
+</div>
+
+<div style="max-width:1000px;">
+  {% if offres %}
+  <div class="card" style="overflow:hidden;">
+    <table style="width:100%;border-collapse:collapse;font-size:0.875rem;">
+      <thead>
+        <tr style="border-bottom:1px solid var(--border);background:var(--paper);">
+          <th style="padding:12px 16px;text-align:left;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);">Offre</th>
+          <th style="padding:12px 16px;text-align:left;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);">Entreprise</th>
+          <th style="padding:12px 16px;text-align:center;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);">Candidatures</th>
+          <th style="padding:12px 16px;text-align:center;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);">Statut</th>
+          <th style="padding:12px 16px;text-align:center;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);">Date</th>
+          <th style="padding:12px 16px;text-align:center;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for o in offres %}
+        <tr style="border-bottom:1px solid var(--border);transition:background 0.15s;" onmouseover="this.style.background='var(--paper)'" onmouseout="this.style.background='transparent'">
+          <td style="padding:14px 16px;">
+            <div style="font-weight:600;color:var(--ink);">{{ o.titre }}</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px;">{{ o.type_contrat or '—' }} · {{ o.localisation or '—' }}</div>
+          </td>
+          <td style="padding:14px 16px;color:var(--muted);">{{ o.entreprise_nom or '—' }}</td>
+          <td style="padding:14px 16px;text-align:center;font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;">{{ o.nb_candidatures }}</td>
+          <td style="padding:14px 16px;text-align:center;">
+            {% if o.statut == 'active' %}
+              <span style="display:inline-flex;align-items:center;gap:5px;background:#D1FAE5;color:#065F46;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;">
+                <span style="width:6px;height:6px;background:#22C55E;border-radius:50%;"></span> Active
+              </span>
+            {% elif o.statut == 'fermée' %}
+              <span style="background:#FEE2E2;color:#B91C1C;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;">Fermée</span>
+            {% else %}
+              <span style="background:#F1F5F9;color:#475569;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;">{{ o.statut }}</span>
+            {% endif %}
+          </td>
+          <td style="padding:14px 16px;text-align:center;color:var(--muted);font-size:12px;">
+            {{ o.created_at.strftime('%d/%m/%Y') if o.created_at else '—' }}
+          </td>
+          <td style="padding:14px 16px;text-align:center;">
+            <form method="POST" action="{{ url_for('admin_supprimer_offre', offre_id=o.id) }}"
+                  onsubmit="return confirm('Supprimer cette offre et toutes ses candidatures ?');"
+                  style="margin:0;">
+              <button type="submit"
+                style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:8px;border:1px solid #FCA5A5;font-size:12px;font-weight:600;cursor:pointer;background:var(--white);color:#B91C1C;transition:all 0.18s;"
+                onmouseover="this.style.background='#FEE2E2'"
+                onmouseout="this.style.background='var(--white)'">
+                <i class="fa-regular fa-trash-can"></i> Supprimer
+              </button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="card" style="padding:48px;text-align:center;color:var(--muted);">
+    <i class="fa-regular fa-file-lines" style="font-size:2rem;margin-bottom:12px;display:block;"></i>
+    Aucune offre publiée.
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

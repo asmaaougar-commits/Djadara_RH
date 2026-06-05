@@ -1,0 +1,194 @@
+{% extends "entreprise/base.html" %}
+{% block title %}Modifier l'offre — Djadara RH{% endblock %}
+
+{% block head %}
+<style>
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field label {
+  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--muted);
+}
+.field input, .field textarea, .field select {
+  padding: 11px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.875rem;
+  color: var(--text);
+  background: #FAFAFA;
+  outline: none;
+  transition: border-color 0.2s, background 0.2s;
+  width: 100%;
+}
+.field input:focus, .field textarea:focus, .field select:focus {
+  border-color: var(--green); background: #fff;
+}
+.field textarea { min-height: 110px; resize: vertical; }
+
+.poids-grid {
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px;
+}
+.poids-item { display: flex; flex-direction: column; gap: 5px; }
+.poids-item label {
+  font-size: 0.68rem; font-weight: 700;
+  letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted);
+}
+.poids-item input {
+  padding: 9px 10px; border: 1.5px solid var(--border);
+  border-radius: 8px; font-size: 0.875rem; text-align: center;
+  background: #FAFAFA; outline: none; transition: border-color 0.2s; width: 100%;
+}
+.poids-item input:focus { border-color: var(--green); background: #fff; }
+
+.section-divider {
+  border: none; border-top: 1px solid var(--border); margin: 8px 0;
+}
+.form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Header -->
+<div class="page-header">
+  <div>
+    <div class="page-header-label">Offres d'emploi</div>
+    <h1>Modifier l'offre</h1>
+    <p style="max-width:420px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ offre.titre }}</p>
+  </div>
+  <a class="btn btn-ghost" href="/entreprise/offres">
+    <i class="fa-solid fa-arrow-left"></i> Retour aux offres
+  </a>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% for category, message in messages %}
+    <div class="flash flash-{{ category }}" style="margin-bottom:20px;">{{ message }}</div>
+  {% endfor %}
+{% endwith %}
+
+<div class="card" style="padding:28px 32px;max-width:860px;">
+  <form method="POST" action="">
+    <div style="display:flex;flex-direction:column;gap:16px;">
+
+      <!-- Infos principales -->
+      <div style="font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--orange);">
+        Informations principales
+      </div>
+
+      <div class="field">
+        <label>Titre du poste</label>
+        <input type="text" name="titre" value="{{ offre.titre }}" required>
+      </div>
+
+      <div class="field">
+        <label>Compétences requises (séparées par des virgules)</label>
+        <input type="text" name="competences" value="{{ offre.competences }}" required>
+      </div>
+
+      <div class="field">
+        <label>Description</label>
+        <textarea name="description" required>{{ offre.description or '' }}</textarea>
+      </div>
+
+      <hr class="section-divider">
+      <div style="font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--orange);">
+        Critères & Conditions
+      </div>
+
+      <div class="form-grid-2">
+        <div class="field">
+          <label>Expérience minimale (années)</label>
+          <input type="number" name="experience_min" min="0" value="{{ offre.experience_min or 0 }}">
+        </div>
+        <div class="field">
+          <label>Niveau d'étude</label>
+          <input type="text" name="niveau_etude" value="{{ offre.niveau_etude or '' }}" placeholder="Ex : Master, Licence...">
+        </div>
+      </div>
+
+      <div class="form-grid-2">
+        <div class="field">
+          <label>Langues requises</label>
+          <input type="text" name="langues_requises" value="{{ offre.langues_requises or '' }}" placeholder="Français, Anglais...">
+        </div>
+        <div class="field">
+          <label>Certifications</label>
+          <input type="text" name="certifications" value="{{ offre.certifications or '' }}" placeholder="AWS, PMP...">
+        </div>
+      </div>
+
+      <div class="form-grid-2">
+        <div class="field">
+          <label>Localisation</label>
+          <input type="text" name="localisation" value="{{ offre.localisation or '' }}">
+        </div>
+        <div class="field">
+          <label>Type de contrat</label>
+          <select name="type_contrat">
+            <option value="CDI"      {% if offre.type_contrat == 'CDI' %}selected{% endif %}>CDI</option>
+            <option value="CDD"      {% if offre.type_contrat == 'CDD' %}selected{% endif %}>CDD</option>
+            <option value="Stage"    {% if offre.type_contrat == 'Stage' %}selected{% endif %}>Stage</option>
+            <option value="Freelance"{% if offre.type_contrat == 'Freelance' %}selected{% endif %}>Freelance</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-grid-2">
+        <div class="field">
+          <label>Salaire</label>
+          <input type="text" name="salaire" value="{{ offre.salaire or '' }}" placeholder="Ex : 80 000 – 100 000 DA / mois">
+        </div>
+        <div class="field">
+          <label>Statut</label>
+          <select name="statut">
+            <option value="active" {% if offre.statut == 'active' %}selected{% endif %}>✅ Active</option>
+            <option value="fermée" {% if offre.statut == 'fermée' %}selected{% endif %}>🔴 Fermée</option>
+            <option value="draft"  {% if offre.statut == 'draft'  %}selected{% endif %}>⚙️ Brouillon</option>
+          </select>
+        </div>
+      </div>
+
+      <hr class="section-divider">
+      <div style="font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--orange);">
+        Pondérations du scoring IA <span style="font-weight:400;color:#94A3B8;">(total recommandé : 100)</span>
+      </div>
+
+      <div class="poids-grid">
+        <div class="poids-item">
+          <label>Compétences</label>
+          <input type="number" name="poids_competences" value="{{ offre.poids_competences or 40 }}" min="0">
+        </div>
+        <div class="poids-item">
+          <label>Expérience</label>
+          <input type="number" name="poids_experience" value="{{ offre.poids_experience or 25 }}" min="0">
+        </div>
+        <div class="poids-item">
+          <label>Formation</label>
+          <input type="number" name="poids_formation" value="{{ offre.poids_formation or 20 }}" min="0">
+        </div>
+        <div class="poids-item">
+          <label>Langues</label>
+          <input type="number" name="poids_langues" value="{{ offre.poids_langues or 10 }}" min="0">
+        </div>
+        <div class="poids-item">
+          <label>Certifications</label>
+          <input type="number" name="poids_certif" value="{{ offre.poids_certif or 5 }}" min="0">
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div style="display:flex;gap:10px;padding-top:8px;border-top:1px solid var(--border);margin-top:4px;">
+        <button type="submit" class="btn btn-primary" style="padding:12px 28px;font-size:0.9rem;">
+          <i class="fa-solid fa-floppy-disk"></i> Enregistrer les modifications
+        </button>
+        <a href="/entreprise/offres" class="btn btn-ghost" style="padding:12px 20px;font-size:0.9rem;">
+          Annuler
+        </a>
+      </div>
+
+    </div>
+  </form>
+</div>
+
+{% endblock %}

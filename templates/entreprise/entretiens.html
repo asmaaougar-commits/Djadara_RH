@@ -1,0 +1,303 @@
+{% extends "entreprise/base.html" %}
+{% block title %}Entretiens — Djadara RH{% endblock %}
+
+{% block head %}
+<style>
+  /* ── Champs formulaire ── */
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field label {
+    font-size: 0.72rem; font-weight: 700;
+    letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted);
+  }
+  .field input, .field textarea, .field select {
+    padding: 11px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.875rem;
+    color: var(--text);
+    background: #FAFAFA;
+    outline: none;
+    transition: border-color 0.2s, background 0.2s;
+    width: 100%;
+  }
+  .field input:focus, .field textarea:focus, .field select:focus {
+    border-color: var(--accent); background: #fff;
+  }
+  .form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+
+  /* ── Cartes entretiens ── */
+  .entretien-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    box-shadow: var(--shadow);
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    transition: box-shadow 0.15s;
+  }
+  .entretien-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.09); }
+
+  .entretien-avatar {
+    width: 42px; height: 42px;
+    border-radius: 12px;
+    background: #EEF2FF;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem; font-weight: 700;
+    color: var(--accent);
+    flex-shrink: 0;
+  }
+
+  .entretien-info { flex: 1; min-width: 0; }
+  .entretien-name { font-size: 0.95rem; font-weight: 700; color: var(--text); margin-bottom: 3px; }
+  .entretien-offre { font-size: 0.8rem; color: var(--accent); font-weight: 600; margin-bottom: 6px; }
+  .entretien-meta {
+    display: flex; flex-wrap: wrap; gap: 12px;
+    font-size: 0.8rem; color: var(--muted);
+  }
+  .entretien-meta span { display: flex; align-items: center; gap: 4px; }
+
+  /* Badges statut */
+  .statut-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 4px 12px; border-radius: 20px;
+    font-size: 0.72rem; font-weight: 700;
+    flex-shrink: 0;
+  }
+  .statut-planifie  { background: #DBEAFE; color: #1E40AF; }
+  .statut-confirme  { background: #D1FAE5; color: #065F46; }
+  .statut-annule    { background: #FEE2E2; color: #991B1B; }
+  .statut-termine   { background: #F1F5F9; color: #475569; }
+
+  /* Type badge */
+  .type-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 9px; border-radius: 8px;
+    font-size: 0.72rem; font-weight: 600;
+    background: #EEF2FF; color: var(--accent);
+  }
+
+  /* ── Empty state ── */
+  .empty-state {
+    text-align: center; padding: 72px 20px; color: #94A3B8;
+  }
+  .empty-state i { font-size: 2.5rem; margin-bottom: 14px; display: block; }
+  .empty-state p { font-size: 0.9rem; }
+
+  /* ── Section title ── */
+  .section-sep {
+    display: flex; align-items: center; gap: 12px;
+    margin: 28px 0 16px;
+  }
+  .section-sep span {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem; color: var(--text); white-space: nowrap;
+  }
+  .section-sep::after {
+    content: ''; flex: 1; height: 1px; background: var(--border);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ── Header ── -->
+<div class="page-header">
+  <div>
+    <div class="page-header-label">Recrutement</div>
+    <h1>Entretiens</h1>
+    <p>Planifiez et suivez vos convocations.</p>
+  </div>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div class="flash flash-{{ category }}">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
+<!-- ── Formulaire planification ── -->
+<div class="card" style="padding:26px 30px;margin-bottom:28px;">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border);">
+    <div style="width:36px;height:36px;border-radius:10px;background:#EEF2FF;display:flex;align-items:center;justify-content:center;">
+      <i class="fa-solid fa-calendar-plus" style="color:var(--accent);font-size:0.9rem;"></i>
+    </div>
+    <span style="font-family:'Playfair Display',serif;font-size:1.05rem;color:var(--text);">
+      Planifier un entretien
+    </span>
+  </div>
+
+  <form method="POST" action="/entreprise/entretiens">
+    <div style="display:flex;flex-direction:column;gap:16px;">
+
+      <div class="field">
+        <label>Candidature <span style="color:#EF4444;">*</span></label>
+        <select name="candidature_id" required>
+          <option value="">— Sélectionner un candidat —</option>
+          {% for ca in candidatures_disponibles %}
+            <option value="{{ ca.id }}">
+              {{ ca.prenom }} {{ ca.nom }} — {{ ca.offre_titre }}
+            </option>
+          {% endfor %}
+        </select>
+        {% if not candidatures_disponibles %}
+          <div style="font-size:0.82rem;color:#92400E;background:#FEF3C7;border:1px solid #FDE68A;border-radius:8px;padding:10px 14px;margin-top:6px;display:flex;align-items:flex-start;gap:8px;">
+            <i class="fa-solid fa-triangle-exclamation" style="margin-top:2px;flex-shrink:0;"></i>
+            <span>
+              Aucune candidature disponible. Pour planifier un entretien, la candidature doit exister et ne pas être <strong>refusée</strong>.
+              Vérifiez que le candidat a bien postulé via <a href="/entreprise/candidatures" style="color:#92400E;font-weight:700;text-decoration:underline;">Candidatures</a>.
+            </span>
+          </div>
+        {% endif %}
+      </div>
+
+      <div class="form-grid-2">
+        <div class="field">
+          <label>Date et heure <span style="color:#EF4444;">*</span></label>
+          <input type="datetime-local" name="date_heure" required>
+        </div>
+        <div class="field">
+          <label>Durée (minutes)</label>
+          <input type="number" name="duree_min" value="60" min="15" max="480">
+        </div>
+      </div>
+
+      <div class="form-grid-3">
+        <div class="field">
+          <label>Type d'entretien</label>
+          <select name="type">
+            <option value="présentiel">🏢 Présentiel</option>
+            <option value="visio">💻 Visioconférence</option>
+            <option value="téléphone">📞 Téléphone</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Lieu</label>
+          <input type="text" name="lieu" placeholder="Adresse, salle...">
+        </div>
+        <div class="field">
+          <label>Lien visio</label>
+          <input type="url" name="lien_visio" placeholder="https://meet.google.com/...">
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Notes internes</label>
+        <textarea name="notes" rows="2" placeholder="Questions préparées, points à aborder..."></textarea>
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;padding-top:8px;border-top:1px solid var(--border);">
+        <button type="submit" class="btn btn-primary" style="padding:12px 28px;">
+          <i class="fa-solid fa-calendar-plus"></i> Planifier l'entretien
+        </button>
+      </div>
+
+    </div>
+  </form>
+</div>
+
+<!-- ── Liste entretiens ── -->
+<div class="section-sep">
+  <span>
+    <i class="fa-solid fa-list" style="color:var(--accent);margin-right:8px;font-size:0.9rem;"></i>
+    Entretiens planifiés
+    {% if entretiens %}
+      <span style="font-family:'Inter',sans-serif;font-size:0.75rem;color:var(--muted);font-weight:500;margin-left:8px;">
+        ({{ entretiens|length }})
+      </span>
+    {% endif %}
+  </span>
+</div>
+
+{% if entretiens %}
+  <div style="display:flex;flex-direction:column;gap:12px;">
+    {% for e in entretiens %}
+    <div class="entretien-card">
+
+      <!-- Avatar initiales -->
+      <div class="entretien-avatar">
+        {{ e.prenom[0]|upper if e.prenom else '?' }}{{ e.nom[0]|upper if e.nom else '?' }}
+      </div>
+
+      <!-- Infos -->
+      <div class="entretien-info">
+        <div class="entretien-name">{{ e.prenom }} {{ e.nom }}</div>
+        <div class="entretien-offre">
+          <i class="fa-solid fa-briefcase" style="font-size:0.7rem;margin-right:3px;"></i>
+          {{ e.offre_titre }}
+        </div>
+        <div class="entretien-meta">
+          <span>
+            <i class="fa-regular fa-calendar"></i>
+            {{ e.date_heure.strftime('%d/%m/%Y à %H:%M') if e.date_heure else '—' }}
+          </span>
+          <span>
+            <i class="fa-regular fa-clock"></i>
+            {{ e.duree_min }} min
+          </span>
+          {% if e.lieu %}
+          <span>
+            <i class="fa-solid fa-location-dot"></i>
+            {{ e.lieu }}
+          </span>
+          {% endif %}
+          {% if e.lien_visio %}
+          <span>
+            <a href="{{ e.lien_visio }}" target="_blank" style="color:var(--accent);text-decoration:none;font-weight:600;">
+              <i class="fa-solid fa-video"></i> Rejoindre
+            </a>
+          </span>
+          {% endif %}
+        </div>
+        {% if e.notes %}
+          <div style="margin-top:8px;font-size:0.78rem;color:var(--muted);background:#F8FAFB;padding:8px 12px;border-radius:8px;border-left:3px solid var(--accent);">
+            {{ e.notes }}
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Badges droite -->
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex-shrink:0;">
+        <span class="statut-badge
+          {% if e.statut == 'planifié' %}statut-planifie
+          {% elif e.statut == 'confirmé' %}statut-confirme
+          {% elif e.statut == 'annulé' %}statut-annule
+          {% else %}statut-termine{% endif %}">
+          {% if e.statut == 'planifié' %}● Planifié
+          {% elif e.statut == 'confirmé' %}● Confirmé
+          {% elif e.statut == 'annulé' %}● Annulé
+          {% else %}● Terminé{% endif %}
+        </span>
+        <span class="type-badge">
+          {% if e.type == 'visio' %}<i class="fa-solid fa-video"></i>
+          {% elif e.type == 'téléphone' %}<i class="fa-solid fa-phone"></i>
+          {% else %}<i class="fa-solid fa-building"></i>{% endif %}
+          {{ e.type | capitalize }}
+        </span>
+        <div style="font-size:0.72rem;color:var(--muted);">
+          <i class="fa-regular fa-envelope" style="margin-right:3px;"></i>{{ e.email }}
+        </div>
+      </div>
+
+    </div>
+    {% endfor %}
+  </div>
+
+{% else %}
+  <div class="card">
+    <div class="empty-state">
+      <i class="fa-regular fa-calendar-xmark"></i>
+      <p style="font-weight:600;color:var(--text);">Aucun entretien planifié</p>
+      <p>Utilisez le formulaire ci-dessus pour convoquer vos candidats.</p>
+    </div>
+  </div>
+{% endif %}
+
+{% endblock %}

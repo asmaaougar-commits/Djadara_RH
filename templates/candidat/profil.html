@@ -1,0 +1,62 @@
+{% extends "candidat/base.html" %}
+{% block title %}Profil Candidat — Yassir RH{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Mon profil</h1>
+    <p>Complétez vos informations</p>
+  </div>
+</div>
+
+<div class="card" style="max-width:720px;margin:0 auto;">
+  <form method="POST">
+    <div class="field-row" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div class="field">
+        <label>Nom</label>
+        <input type="text" name="nom" value="{{ candidat.nom }}" required>
+      </div>
+      <div class="field">
+        <label>Prénom</label>
+        <input type="text" name="prenom" value="{{ candidat.prenom }}" required>
+      </div>
+    </div>
+
+    <div class="field" style="margin-top:12px;">
+      <label>Téléphone</label>
+      <input type="text" name="telephone" value="{{ candidat.telephone or '' }}">
+    </div>
+
+    <div class="field" style="margin-top:12px;">
+      <label>Intitulé de poste</label>
+      <input type="text" name="titre_poste" value="{{ candidat.titre_poste or '' }}">
+    </div>
+
+    <div class="field" style="margin-top:12px;">
+      <label>Résumé</label>
+      <textarea name="resume" style="min-height:120px;">{{ candidat.resume or '' }}</textarea>
+    </div>
+
+    <div class="field-row" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div class="field" style="margin-top:12px;">
+        <label>Niveau d’étude</label>
+        <input type="text" name="niveau_etude" value="{{ candidat.niveau_etude or '' }}">
+      </div>
+      <div class="field" style="margin-top:12px;">
+        <label>Années d’expérience</label>
+        <input type="number" name="annees_experience" value="{{ candidat.annees_experience or 0 }}" min="0">
+      </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary" style="margin-top:16px;">
+      Enregistrer
+    </button>
+  </form>
+
+  <div style="margin-top:18px;color:#64748B;font-size:0.9rem;">
+    <div><b>CV :</b> {{ candidat.cv_fichier or 'non déposé' }}</div>
+    <div><b>Analyse :</b> {{ candidat.cv_analyse_at.strftime('%d %b %Y') if candidat.cv_analyse_at else '—' }}</div>
+  </div>
+</div>
+{% endblock %}
+

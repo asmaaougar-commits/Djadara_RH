@@ -1,247 +1,1440 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yassir RH - Recrutement Intelligent par IA</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-</head>
-<body>
+{% extends "base_public.html" %}
 
-    <!-- Bouton toggle (toujours visible) -->
-    <button class="sidebar-toggle" id="sidebarToggle" title="Afficher/Masquer le menu">
-        <i class="fas fa-bars" id="toggleIcon"></i>
-    </button>
+{% block title %}Djadara RH — Recrutement Intelligent par IA{% endblock %}
 
-    <!-- Sidebar gauche -->
-    <aside class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <a class="sidebar-brand" href="/">
-                <div class="brand-logo">YR</div>
-                <span class="brand-name">Yassir RH</span>
-            </a>
+{% block head %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,400&display=swap" rel="stylesheet">
+
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* ══════════════════════════════════
+   THEME VARIABLES
+══════════════════════════════════ */
+:root {
+  --mint:         #3DAA7A;
+  --mint-dark:    #2A7D59;
+  --mint-pastel:  #D4F0E4;
+  --mint-light:   #EAF8F0;
+  --mint-mid:     #88D4B3;
+  --orange:       #F4845F;
+  --orange-dark:  #D96840;
+  --orange-pastel:#FCE8DF;
+  --orange-light: #FEF4EF;
+  --mauve:        #9B7EC8;
+  --mauve-dark:   #7A5DAA;
+  --mauve-pastel: #EDE6F8;
+  --mauve-light:  #F5F0FC;
+  --radius-sm:    10px;
+  --radius-md:    16px;
+  --radius-lg:    24px;
+  --radius-xl:    32px;
+}
+
+/* ── MODE SOMBRE (défaut) ── */
+body {
+  font-family: 'DM Sans', sans-serif;
+  line-height: 1.6;
+  overflow-x: hidden;
+  transition: background 0.5s, color 0.5s;
+
+  --ink:        #0F1923;
+  --ink2:       #1A2533;
+  --muted:      #5E738A;
+  --border:     #E0EAF2;
+  --border-soft:#EEF4F9;
+  --bg:         #F5F9FC;
+  --bg-warm:    #FDFAF7;
+  --white:      #FFFFFF;
+
+  /* hero */
+  --hero-bg1: #0F1923;
+  --hero-bg2: #1E1040;
+  --hero-bg3: #2B0D00;
+  --hero-text: #ffffff;
+  --hero-sub:  rgba(255,255,255,0.6);
+  --hero-badge-bg: rgba(255,255,255,0.07);
+  --hero-badge-border: rgba(255,255,255,0.15);
+  --hero-badge-color: rgba(255,255,255,0.7);
+  --hero-btn-primary-bg: #ffffff;
+  --hero-btn-primary-color: #0F1923;
+  --hero-btn-sec-color: #ffffff;
+  --hero-btn-sec-border: rgba(255,255,255,0.25);
+  --hero-trust-color: rgba(255,255,255,0.35);
+  --hero-mock-bg: rgba(255,255,255,0.06);
+  --hero-mock-border: rgba(255,255,255,0.12);
+  --hero-row-bg: rgba(255,255,255,0.05);
+  --hero-row-border: rgba(255,255,255,0.07);
+  --hero-cn-color: #ffffff;
+  --hero-cs-color: rgba(255,255,255,0.4);
+  --hero-bar-bg: rgba(255,255,255,0.1);
+  --hero-footer-border: rgba(255,255,255,0.07);
+  --hero-info-color: rgba(255,255,255,0.35);
+  --hero-wrap-bg1: #1E1040;
+  --hero-wrap-bg2: #2B0D00;
+
+  /* nav */
+  --nav-bg: rgba(15,25,35,0.94);
+  --nav-border: rgba(255,255,255,0.07);
+  --nav-link-color: rgba(255,255,255,0.6);
+  --nav-link-hover-bg: rgba(255,255,255,0.07);
+  --nav-link-hover-color: #ffffff;
+  --nav-logo-color: #ffffff;
+  --nav-ghost-color: #ffffff;
+  --nav-ghost-border: rgba(255,255,255,0.25);
+  --nav-ghost-hover-bg: rgba(255,255,255,0.08);
+
+  /* stats bar */
+  --stats-bg: #1A2533;
+
+  /* sections claires */
+  --section-bg: #FDFAF7;
+  --section-bg2: #F5F9FC;
+  --card-bg: #ffffff;
+  --card-border: #E0EAF2;
+  --section-title-color: #0F1923;
+  --section-sub-color: #5E738A;
+  --feat-text-color: #0F1923;
+
+  /* fair section (sombre dans les deux modes) */
+  --fair-bg: #0F1923;
+  --fair-card-bg: rgba(255,255,255,0.04);
+  --fair-card-border: rgba(255,255,255,0.08);
+  --fair-title-color: #ffffff;
+  --fair-desc-color: rgba(255,255,255,0.45);
+  --fair-section-tag-color: var(--mint-mid);
+  --fair-section-tag-bg: rgba(61,170,122,0.12);
+
+  /* highlights */
+  --hl-bg: #FDFAF7;
+  --hl-border: #E0EAF2;
+  --hl-desc-color: #5E738A;
+
+  /* portals / how */
+  --portal-bg: #ffffff;
+  --portal-border: #E0EAF2;
+  --portal-title-color: #0F1923;
+  --portal-desc-color: #5E738A;
+  --portal-feat-color: #0F1923;
+  --portal-sec-color: #5E738A;
+  --portal-sec-bg: transparent;
+  --portal-sec-border: #E0EAF2;
+  --how-bg: #F5F9FC;
+  --how-border: #E0EAF2;
+  --how-title-color: #0F1923;
+  --how-desc-color: #5E738A;
+
+  /* cta */
+  --cta-bg1: #0F1923;
+  --cta-bg2: #1E1040;
+  --cta-bg3: #2B0D00;
+  --cta-title-color: #ffffff;
+  --cta-sub-color: rgba(255,255,255,0.5);
+  --cta-btn-primary-bg: #ffffff;
+  --cta-btn-primary-color: #0F1923;
+  --cta-eyebrow-bg: rgba(255,255,255,0.07);
+  --cta-eyebrow-border: rgba(255,255,255,0.15);
+  --cta-eyebrow-color: rgba(255,255,255,0.6);
+  --cta-btn-sec-color: #ffffff;
+  --cta-btn-sec-border: rgba(255,255,255,0.25);
+
+  /* footer */
+  --footer-bg: #0F1923;
+  --footer-text: rgba(255,255,255,0.55);
+  --footer-name: #ffffff;
+  --footer-desc: rgba(255,255,255,0.35);
+  --footer-title: #ffffff;
+  --footer-link: rgba(255,255,255,0.4);
+  --footer-copy: rgba(255,255,255,0.25);
+  --footer-border: rgba(255,255,255,0.07);
+
+  /* toggle */
+  --toggle-bg: rgba(255,255,255,0.1);
+  --toggle-icon-color: #ffffff;
+}
+
+/* ── MODE CLAIR ── */
+body.light {
+  --ink:        #0F1923;
+  --ink2:       #1A2533;
+  --muted:      #5E738A;
+  --border:     #D8C8F0;
+  --border-soft:#EEE6FA;
+  --bg:         #EDE6F8;
+  --bg-warm:    #F5F0FC;
+  --white:      #FFFFFF;
+
+  /* hero clair = mauve pastel + orange pastel */
+  --hero-bg1: #E8E0F5;
+  --hero-bg2: #EDE6F8;
+  --hero-bg3: #FCE8DF;
+  --hero-text: #0F1923;
+  --hero-sub:  #5E738A;
+  --hero-badge-bg: rgba(155,126,200,0.12);
+  --hero-badge-border: rgba(155,126,200,0.3);
+  --hero-badge-color: #7A5DAA;
+  --hero-btn-primary-bg: #0F1923;
+  --hero-btn-primary-color: #ffffff;
+  --hero-btn-sec-color: #0F1923;
+  --hero-btn-sec-border: rgba(15,25,35,0.25);
+  --hero-trust-color: #8FA3B8;
+  --hero-mock-bg: rgba(255,255,255,0.8);
+  --hero-mock-border: rgba(155,126,200,0.2);
+  --hero-row-bg: rgba(255,255,255,0.7);
+  --hero-row-border: rgba(155,126,200,0.12);
+  --hero-cn-color: #0F1923;
+  --hero-cs-color: #5E738A;
+  --hero-bar-bg: rgba(15,25,35,0.08);
+  --hero-footer-border: rgba(15,25,35,0.08);
+  --hero-info-color: #8FA3B8;
+  --hero-wrap-bg1: #DDD0F0;
+  --hero-wrap-bg2: #F8DDD2;
+
+  /* nav clair */
+  --nav-bg: rgba(232,224,245,0.95);
+  --nav-border: rgba(155,126,200,0.2);
+  --nav-link-color: #5E738A;
+  --nav-link-hover-bg: rgba(155,126,200,0.1);
+  --nav-link-hover-color: #0F1923;
+  --nav-logo-color: #0F1923;
+  --nav-ghost-color: #0F1923;
+  --nav-ghost-border: rgba(15,25,35,0.2);
+  --nav-ghost-hover-bg: rgba(15,25,35,0.05);
+
+  /* stats bar clair */
+  --stats-bg: #2A1A4A;
+
+  /* sections claires */
+  --section-bg: #F5F0FC;
+  --section-bg2: #EDE6F8;
+  --card-bg: #ffffff;
+  --card-border: #D8C8F0;
+  --section-title-color: #0F1923;
+  --section-sub-color: #5E738A;
+  --feat-text-color: #0F1923;
+
+  /* fair : reste sombre */
+  --fair-bg: #1A0A2E;
+  --fair-card-bg: rgba(255,255,255,0.05);
+  --fair-card-border: rgba(255,255,255,0.1);
+  --fair-title-color: #ffffff;
+  --fair-desc-color: rgba(255,255,255,0.5);
+  --fair-section-tag-color: var(--mint-mid);
+  --fair-section-tag-bg: rgba(61,170,122,0.15);
+
+  /* highlights clair */
+  --hl-bg: #F5F0FC;
+  --hl-border: #D8C8F0;
+  --hl-desc-color: #5E738A;
+
+  /* portals / how clair */
+  --portal-bg: #ffffff;
+  --portal-border: #D8C8F0;
+  --portal-title-color: #0F1923;
+  --portal-desc-color: #5E738A;
+  --portal-feat-color: #0F1923;
+  --portal-sec-color: #5E738A;
+  --portal-sec-bg: transparent;
+  --portal-sec-border: #D8C8F0;
+  --how-bg: #EDE6F8;
+  --how-border: #D8C8F0;
+  --how-title-color: #0F1923;
+  --how-desc-color: #5E738A;
+
+  /* cta clair = orange pastel */
+  --cta-bg1: #FCE8DF;
+  --cta-bg2: #F8DDD2;
+  --cta-bg3: #EDE6F8;
+  --cta-title-color: #0F1923;
+  --cta-sub-color: #5E738A;
+  --cta-btn-primary-bg: #0F1923;
+  --cta-btn-primary-color: #ffffff;
+  --cta-eyebrow-bg: rgba(244,132,95,0.12);
+  --cta-eyebrow-border: rgba(244,132,95,0.3);
+  --cta-eyebrow-color: var(--orange-dark);
+  --cta-btn-sec-color: #0F1923;
+  --cta-btn-sec-border: rgba(15,25,35,0.25);
+
+  /* footer clair */
+  --footer-bg: #1A0A2E;
+  --footer-text: rgba(255,255,255,0.55);
+  --footer-name: #ffffff;
+  --footer-desc: rgba(255,255,255,0.35);
+  --footer-title: #ffffff;
+  --footer-link: rgba(255,255,255,0.4);
+  --footer-copy: rgba(255,255,255,0.25);
+  --footer-border: rgba(255,255,255,0.07);
+
+  /* toggle */
+  --toggle-bg: rgba(155,126,200,0.15);
+  --toggle-icon-color: #7A5DAA;
+}
+
+/* ══════════════════════════════════
+   ANIMATIONS D'ENTRÉE
+══════════════════════════════════ */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(32px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes slideRight {
+  from { opacity: 0; transform: translateX(-40px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes slideLeft {
+  from { opacity: 0; transform: translateX(40px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.88); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes blink {
+  0%, 100% { opacity: 1; } 50% { opacity: 0.2; }
+}
+@keyframes barGrow {
+  from { width: 0 !important; }
+}
+@keyframes countUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-8px); }
+}
+@keyframes pulse-ring {
+  0%   { transform: scale(1);   opacity: 0.6; }
+  100% { transform: scale(1.8); opacity: 0; }
+}
+
+/* éléments "en attente" avant scroll */
+.reveal {
+  opacity: 0;
+  transform: translateY(36px);
+  transition: opacity 0.7s cubic-bezier(.22,.68,0,1.1), transform 0.7s cubic-bezier(.22,.68,0,1.1);
+}
+.reveal.visible { opacity: 1; transform: translateY(0); }
+.reveal-left  { opacity: 0; transform: translateX(-40px); transition: opacity 0.7s cubic-bezier(.22,.68,0,1.1), transform 0.7s cubic-bezier(.22,.68,0,1.1); }
+.reveal-left.visible  { opacity: 1; transform: translateX(0); }
+.reveal-right { opacity: 0; transform: translateX(40px);  transition: opacity 0.7s cubic-bezier(.22,.68,0,1.1), transform 0.7s cubic-bezier(.22,.68,0,1.1); }
+.reveal-right.visible { opacity: 1; transform: translateX(0); }
+.reveal-scale { opacity: 0; transform: scale(0.9); transition: opacity 0.7s cubic-bezier(.22,.68,0,1.1), transform 0.7s cubic-bezier(.22,.68,0,1.1); }
+.reveal-scale.visible { opacity: 1; transform: scale(1); }
+.delay-1 { transition-delay: 0.1s; }
+.delay-2 { transition-delay: 0.2s; }
+.delay-3 { transition-delay: 0.3s; }
+.delay-4 { transition-delay: 0.4s; }
+.delay-5 { transition-delay: 0.5s; }
+.delay-6 { transition-delay: 0.6s; }
+
+/* ══════════════════════════════════
+   TOGGLE MODE
+══════════════════════════════════ */
+.theme-toggle {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: var(--toggle-bg);
+  border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; color: var(--toggle-icon-color);
+  transition: background 0.3s, transform 0.3s;
+  flex-shrink: 0;
+}
+.theme-toggle:hover { transform: rotate(20deg) scale(1.1); }
+
+/* ══════════════════════════════════
+   NAV
+══════════════════════════════════ */
+.nav {
+  position: sticky; top: 0; z-index: 100;
+  background: var(--nav-bg);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--nav-border);
+  padding: 0 52px; height: 66px;
+  display: flex; align-items: center; justify-content: space-between; gap: 24px;
+  transition: background 0.5s, border-color 0.5s;
+  animation: fadeIn 0.5s ease both;
+}
+.nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+.nav-logo img { width: 38px; height: 38px; border-radius: 10px; object-fit: cover; }
+.nav-logo-name {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800; font-size: 19px;
+  color: var(--nav-logo-color); letter-spacing: -0.3px;
+  transition: color 0.4s;
+}
+.nav-links { display: flex; align-items: center; gap: 4px; list-style: none; }
+.nav-links a {
+  text-decoration: none; color: var(--nav-link-color);
+  font-size: 14px; font-weight: 400;
+  padding: 6px 14px; border-radius: 8px;
+  transition: color 0.3s, background 0.3s;
+}
+.nav-links a:hover { color: var(--nav-link-hover-color); background: var(--nav-link-hover-bg); }
+.nav-actions { display: flex; align-items: center; gap: 10px; }
+
+.btn-ghost-white {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 9px 20px; border-radius: var(--radius-sm);
+  font-size: 14px; font-weight: 500;
+  color: var(--nav-ghost-color);
+  background: transparent; border: 1.5px solid var(--nav-ghost-border);
+  text-decoration: none; cursor: pointer;
+  transition: border-color 0.3s, background 0.3s, color 0.3s;
+  font-family: 'DM Sans', sans-serif;
+}
+.btn-ghost-white:hover { background: var(--nav-ghost-hover-bg); }
+
+.btn-mint {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 9px 22px; border-radius: var(--radius-sm);
+  font-size: 14px; font-weight: 600; color: white;
+  background: var(--mint); border: none;
+  text-decoration: none; cursor: pointer;
+  transition: background 0.15s, transform 0.12s;
+  font-family: 'DM Sans', sans-serif;
+  box-shadow: 0 3px 12px rgba(61,170,122,0.35);
+}
+.btn-mint:hover { background: var(--mint-dark); transform: translateY(-1px); }
+
+/* ══════════════════════════════════
+   HERO
+══════════════════════════════════ */
+.hero {
+  min-height: 91vh;
+  display: flex; align-items: center;
+  padding: 80px 52px;
+  background: linear-gradient(135deg, var(--hero-bg1) 0%, var(--hero-bg2) 40%, var(--hero-bg3) 100%);
+  position: relative; overflow: hidden; gap: 72px;
+  transition: background 0.6s;
+}
+.hero-blob1 {
+  position: absolute; top: -80px; right: 20%;
+  width: 500px; height: 500px;
+  background: radial-gradient(circle, rgba(155,126,200,0.2) 0%, transparent 65%);
+  pointer-events: none; z-index: 0;
+  animation: float 7s ease-in-out infinite;
+}
+.hero-blob2 {
+  position: absolute; bottom: -100px; left: 15%;
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, rgba(244,132,95,0.16) 0%, transparent 65%);
+  pointer-events: none; z-index: 0;
+  animation: float 9s ease-in-out infinite reverse;
+}
+
+/* Gauche : mock dashboard */
+.hero-left {
+  flex: 1; max-width: 520px;
+  position: relative; z-index: 1;
+  display: flex; align-items: center; justify-content: center;
+  animation: slideRight 0.9s cubic-bezier(.22,.68,0,1.1) 0.2s both;
+}
+.hero-img-wrap {
+  position: relative; border-radius: 28px; overflow: hidden;
+  box-shadow: 0 32px 80px rgba(0,0,0,0.35);
+  background: linear-gradient(135deg, var(--hero-wrap-bg1), var(--hero-wrap-bg2));
+  width: 100%; aspect-ratio: 4/3;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.6s;
+  animation: float 6s ease-in-out infinite;
+}
+.hero-illustration {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  padding: 28px;
+}
+.mock-dashboard {
+  background: var(--hero-mock-bg);
+  border: 1px solid var(--hero-mock-border);
+  border-radius: 18px; padding: 22px; width: 100%;
+  backdrop-filter: blur(12px);
+  transition: background 0.5s, border-color 0.5s;
+}
+.mock-dash-header {
+  display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;
+}
+.mock-dash-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 14px; font-weight: 700; color: var(--hero-cn-color);
+  transition: color 0.4s;
+}
+.mock-dash-badge {
+  background: var(--mint); color: white;
+  font-size: 10px; font-weight: 700;
+  padding: 3px 10px; border-radius: 100px; letter-spacing: 0.05em;
+}
+/* Pulse ring on badge */
+.mock-dash-badge { position: relative; }
+.mock-dash-badge::after {
+  content: ''; position: absolute; inset: -4px;
+  border-radius: 100px; border: 2px solid var(--mint);
+  animation: pulse-ring 2s ease-out infinite;
+}
+
+.mock-candidate-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 11px 14px; border-radius: 12px; margin-bottom: 8px;
+  background: var(--hero-row-bg);
+  border: 1px solid var(--hero-row-border);
+  transition: background 0.3s, border-color 0.3s, transform 0.2s;
+}
+.mock-candidate-row:hover { transform: translateX(4px); }
+.mock-candidate-row:last-child { margin-bottom: 0; }
+.mock-av {
+  width: 34px; height: 34px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 800; flex-shrink: 0;
+}
+.mock-cn { font-size: 12px; font-weight: 600; color: var(--hero-cn-color); flex: 1; transition: color 0.4s; }
+.mock-cs { font-size: 10px; color: var(--hero-cs-color); margin-top: 1px; transition: color 0.4s; }
+.mock-score-bar { flex: 1; }
+.mock-bar-bg { height: 4px; background: var(--hero-bar-bg); border-radius: 4px; transition: background 0.4s; }
+.mock-bar-fg { height: 4px; border-radius: 4px; animation: barGrow 1.4s cubic-bezier(.22,.68,0,1.1) 0.8s both; }
+.mock-pct-label {
+  font-family: 'Syne', sans-serif;
+  font-size: 15px; font-weight: 800;
+  flex-shrink: 0; min-width: 40px; text-align: right;
+}
+.mock-dash-footer {
+  margin-top: 18px; padding-top: 14px;
+  border-top: 1px solid var(--hero-footer-border);
+  display: flex; align-items: center; justify-content: space-between;
+  transition: border-color 0.4s;
+}
+.mock-dash-info { font-size: 11px; color: var(--hero-info-color); transition: color 0.4s; }
+.mock-dash-tag {
+  font-size: 10px; font-weight: 600; color: var(--mint);
+  background: rgba(61,170,122,0.15); padding: 3px 10px; border-radius: 100px;
+}
+
+/* Droite : texte */
+.hero-right {
+  flex: 1; max-width: 540px;
+  position: relative; z-index: 1;
+  animation: slideLeft 0.9s cubic-bezier(.22,.68,0,1.1) 0.3s both;
+}
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--hero-badge-bg);
+  border: 1px solid var(--hero-badge-border);
+  border-radius: 100px; padding: 6px 16px 6px 10px;
+  font-size: 12px; font-weight: 600; color: var(--hero-badge-color);
+  letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 28px;
+  transition: background 0.4s, border-color 0.4s, color 0.4s;
+}
+.hero-badge-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--mint); animation: blink 2s infinite;
+}
+.hero-h1 {
+  font-family: 'Syne', sans-serif;
+  font-size: 62px; font-weight: 800;
+  line-height: 1.0; letter-spacing: -2.5px;
+  color: var(--hero-text); margin-bottom: 24px;
+  transition: color 0.4s;
+}
+.hero-h1 .accent { color: var(--orange); font-style: italic; }
+.hero-desc {
+  font-size: 17px; color: var(--hero-sub);
+  line-height: 1.75; font-weight: 300; margin-bottom: 40px; max-width: 440px;
+  transition: color 0.4s;
+}
+.hero-cta { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 32px; }
+
+.btn-hero-primary {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 15px 30px; border-radius: 12px;
+  font-size: 15px; font-weight: 600;
+  color: var(--hero-btn-primary-color);
+  background: var(--hero-btn-primary-bg);
+  border: none; text-decoration: none; cursor: pointer;
+  transition: background 0.4s, color 0.4s, transform 0.12s;
+  font-family: 'DM Sans', sans-serif;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.15);
+}
+.btn-hero-primary:hover { transform: translateY(-2px); opacity: 0.9; }
+
+.btn-hero-secondary {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 15px 26px; border-radius: 12px;
+  font-size: 15px; font-weight: 500;
+  color: var(--hero-btn-sec-color);
+  background: transparent; border: 1.5px solid var(--hero-btn-sec-border);
+  text-decoration: none; cursor: pointer;
+  transition: border-color 0.4s, background 0.3s, color 0.4s;
+  font-family: 'DM Sans', sans-serif;
+}
+.btn-hero-secondary:hover { opacity: 0.7; }
+
+.hero-trust {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 13px; color: var(--hero-trust-color); transition: color 0.4s;
+}
+.hero-trust-check {
+  width: 17px; height: 17px; border-radius: 50%;
+  background: rgba(61,170,122,0.2); color: var(--mint);
+  display: inline-flex; align-items: center; justify-content: center; font-size: 10px;
+}
+
+/* ══════════════════════════════════
+   STATS BAR
+══════════════════════════════════ */
+.stats-bar {
+  background: var(--stats-bg); padding: 32px 52px;
+  display: flex; align-items: center; justify-content: center; gap: 0;
+  transition: background 0.5s;
+}
+.stat-item { flex: 1; max-width: 200px; text-align: center; padding: 0 40px; }
+.stat-item + .stat-item { border-left: 1px solid rgba(255,255,255,0.08); }
+.stat-n {
+  font-family: 'Syne', sans-serif;
+  font-size: 34px; font-weight: 800; color: white;
+  letter-spacing: -1.5px; line-height: 1; margin-bottom: 5px;
+}
+.stat-n em { color: var(--mint-mid); font-style: normal; }
+.stat-l { font-size: 12px; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.1em; }
+
+/* ══════════════════════════════════
+   SECTION IA STATS
+══════════════════════════════════ */
+.ia-section {
+  padding: 100px 52px;
+  background: var(--section-bg);
+  transition: background 0.5s;
+}
+.ia-inner {
+  max-width: 1120px; margin: 0 auto;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 96px; align-items: center;
+}
+.ia-left { display: flex; flex-direction: column; gap: 16px; }
+.ia-stat-card {
+  background: var(--card-bg);
+  border: 1.5px solid var(--card-border);
+  border-radius: 20px; padding: 24px 28px;
+  display: flex; align-items: center; gap: 20px;
+  box-shadow: 0 4px 16px rgba(15,25,35,0.05);
+  transition: transform 0.25s, box-shadow 0.25s, background 0.5s, border-color 0.5s;
+  cursor: pointer;
+}
+.ia-stat-card:hover { transform: translateY(-4px) scale(1.01); box-shadow: 0 16px 48px rgba(15,25,35,0.1); }
+.ia-stat-icon {
+  width: 52px; height: 52px; border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px; flex-shrink: 0;
+  transition: transform 0.3s;
+}
+.ia-stat-card:hover .ia-stat-icon { transform: scale(1.15) rotate(-5deg); }
+.ia-stat-num {
+  font-family: 'Syne', sans-serif;
+  font-size: 32px; font-weight: 800;
+  letter-spacing: -1.5px; line-height: 1; margin-bottom: 3px;
+}
+.ia-stat-label { font-size: 13px; color: var(--section-sub-color); font-weight: 400; transition: color 0.4s; }
+.ia-stat-bar-track { height: 5px; background: var(--border-soft); border-radius: 4px; margin-top: 12px; transition: background 0.4s; }
+.ia-stat-bar-fill  { height: 5px; border-radius: 4px; }
+
+.section-tag {
+  display: inline-block;
+  font-size: 11px; font-weight: 700; color: var(--mint);
+  letter-spacing: 0.14em; text-transform: uppercase;
+  margin-bottom: 16px; padding: 4px 12px;
+  background: var(--mint-light); border-radius: 100px;
+}
+.section-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 42px; font-weight: 800;
+  color: var(--section-title-color); letter-spacing: -1.5px;
+  line-height: 1.06; margin-bottom: 20px;
+  transition: color 0.4s;
+}
+.section-sub {
+  font-size: 16px; color: var(--section-sub-color);
+  font-weight: 400; line-height: 1.75; margin-bottom: 36px;
+  transition: color 0.4s;
+}
+.ia-features { display: flex; flex-direction: column; gap: 16px; }
+.ia-feature { display: flex; align-items: flex-start; gap: 14px; }
+.ia-feat-dot {
+  width: 9px; height: 9px; border-radius: 50%;
+  background: var(--mint); flex-shrink: 0; margin-top: 7px;
+}
+.ia-feat-text { font-size: 14px; color: var(--section-title-color); line-height: 1.6; transition: color 0.4s; }
+.ia-feat-text strong { font-weight: 600; }
+
+/* ══════════════════════════════════
+   FAIR SECTION
+══════════════════════════════════ */
+.fair-section {
+  padding: 100px 52px;
+  background: var(--fair-bg);
+  text-align: center;
+  transition: background 0.5s;
+}
+.fair-inner { max-width: 1120px; margin: 0 auto; }
+.fair-section .section-tag { color: var(--fair-section-tag-color); background: var(--fair-section-tag-bg); }
+.fair-section .section-title { color: white; margin: 0 auto 16px; max-width: 680px; }
+.fair-section .section-sub   { color: rgba(255,255,255,0.5); margin: 0 auto 64px; max-width: 520px; }
+.fair-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+.fair-card {
+  background: var(--fair-card-bg);
+  border: 1px solid var(--fair-card-border);
+  border-radius: 24px; padding: 36px 28px; text-align: left;
+  transition: background 0.3s, border-color 0.3s, transform 0.25s;
+}
+.fair-card:hover { background: rgba(255,255,255,0.08); transform: translateY(-6px); border-color: rgba(255,255,255,0.2); }
+.fair-icon {
+  width: 54px; height: 54px; border-radius: 16px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26px; margin-bottom: 22px;
+  transition: transform 0.3s;
+}
+.fair-card:hover .fair-icon { transform: scale(1.15) rotate(-8deg); }
+.fair-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 20px; font-weight: 700; color: var(--fair-title-color);
+  margin-bottom: 12px; letter-spacing: -0.3px; transition: color 0.4s;
+}
+.fair-desc { font-size: 14px; color: var(--fair-desc-color); line-height: 1.7; transition: color 0.4s; }
+
+/* ══════════════════════════════════
+   PORTALS
+══════════════════════════════════ */
+.portals-section { padding: 100px 52px; background: var(--portal-bg); transition: background 0.5s; }
+.portals-inner { max-width: 1120px; margin: 0 auto; }
+.portals-head { text-align: center; margin-bottom: 60px; }
+.portals-head .section-sub { margin: 0 auto; }
+.portals-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
+.portal-card {
+  background: var(--portal-bg);
+  border-radius: var(--radius-xl); padding: 38px 32px 32px;
+  border: 2px solid var(--portal-border);
+  display: flex; flex-direction: column;
+  position: relative; overflow: hidden;
+  transition: transform 0.25s cubic-bezier(.22,.68,0,1.2), box-shadow 0.25s, border-color 0.4s, background 0.5s;
+}
+.portal-card:hover { transform: translateY(-8px); box-shadow: 0 32px 64px rgba(15,25,35,0.1); }
+.portal-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0;
+  height: 5px; border-radius: 2px 2px 0 0;
+}
+.portal-card.candidat::before  { background: var(--orange); }
+.portal-card.entreprise::before { background: var(--mint); }
+.portal-card.candidat:hover  { border-color: var(--orange-pastel); }
+.portal-card.entreprise:hover { border-color: var(--mint-pastel); }
+.portal-icon {
+  width: 58px; height: 58px; border-radius: 16px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px; margin-bottom: 24px;
+  transition: transform 0.3s;
+}
+.portal-card:hover .portal-icon { transform: scale(1.1) rotate(-5deg); }
+.portal-card.candidat  .portal-icon { background: var(--orange-light); }
+.portal-card.entreprise .portal-icon { background: var(--mint-light); }
+.portal-role {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.12em;
+  text-transform: uppercase; margin-bottom: 8px;
+}
+.portal-card.candidat  .portal-role { color: var(--orange); }
+.portal-card.entreprise .portal-role { color: var(--mint); }
+.portal-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 28px; font-weight: 800; color: var(--portal-title-color);
+  margin-bottom: 12px; letter-spacing: -0.5px; transition: color 0.4s;
+}
+.portal-desc { font-size: 14.5px; color: var(--portal-desc-color); line-height: 1.65; margin-bottom: 24px; flex: 1; transition: color 0.4s; }
+.portal-features { list-style: none; display: flex; flex-direction: column; gap: 10px; margin-bottom: 30px; }
+.portal-feature { display: flex; align-items: center; gap: 10px; font-size: 13.5px; color: var(--portal-feat-color); font-weight: 500; transition: color 0.4s; }
+.portal-feat-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.portal-card.candidat  .portal-feat-dot { background: var(--orange); }
+.portal-card.entreprise .portal-feat-dot { background: var(--mint); }
+.portal-btns { display: flex; flex-direction: row; gap: 10px; }
+.portal-btn-primary {
+  flex: 1; display: block; text-align: center;
+  padding: 13px 16px; border-radius: 12px;
+  font-size: 14px; font-weight: 600; color: white;
+  text-decoration: none; border: none; cursor: pointer;
+  transition: opacity 0.18s, transform 0.12s;
+  font-family: 'DM Sans', sans-serif;
+}
+.portal-btn-primary:hover { opacity: 0.88; transform: translateY(-1px); }
+.portal-card.candidat  .portal-btn-primary { background: var(--orange); box-shadow: 0 4px 14px rgba(244,132,95,0.3); }
+.portal-card.entreprise .portal-btn-primary { background: var(--mint); box-shadow: 0 4px 14px rgba(61,170,122,0.3); }
+.portal-btn-secondary {
+  flex: 1; display: block; text-align: center;
+  padding: 12px 16px; border-radius: 12px;
+  font-size: 14px; font-weight: 500; color: var(--portal-sec-color);
+  text-decoration: none; background: var(--portal-sec-bg);
+  border: 1.5px solid var(--portal-sec-border); cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, color 0.4s;
+  font-family: 'DM Sans', sans-serif;
+}
+.portal-btn-secondary:hover { opacity: 0.7; }
+
+/* ══════════════════════════════════
+   HOW IT WORKS
+══════════════════════════════════ */
+.how-section { padding: 100px 52px; background: var(--how-bg); transition: background 0.5s; }
+.how-inner {
+  max-width: 1120px; margin: 0 auto;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 96px; align-items: center;
+}
+.how-steps { display: flex; flex-direction: column; gap: 0; }
+.how-step {
+  display: flex; align-items: flex-start; gap: 22px;
+  padding: 28px 0; border-bottom: 1px solid var(--how-border);
+  transition: border-color 0.4s, transform 0.2s;
+}
+.how-step:hover { transform: translateX(6px); }
+.how-step:last-child { border-bottom: none; }
+.how-num {
+  width: 44px; height: 44px; border-radius: 50%;
+  background: var(--mint); color: white;
+  font-family: 'Syne', sans-serif; font-size: 17px; font-weight: 800;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  box-shadow: 0 4px 14px rgba(61,170,122,0.3);
+  transition: transform 0.2s;
+}
+.how-step:hover .how-num { transform: scale(1.1); }
+.how-step:nth-child(2) .how-num { background: var(--orange); box-shadow: 0 4px 14px rgba(244,132,95,0.3); }
+.how-step:nth-child(3) .how-num { background: var(--mauve);  box-shadow: 0 4px 14px rgba(155,126,200,0.3); }
+.how-step:nth-child(4) .how-num { background: var(--mint-dark); }
+.how-step-title { font-size: 16px; font-weight: 700; color: var(--how-title-color); margin-bottom: 5px; transition: color 0.4s; }
+.how-step-desc  { font-size: 13.5px; color: var(--how-desc-color); line-height: 1.65; transition: color 0.4s; }
+
+/* ══════════════════════════════════
+   FEATURES
+══════════════════════════════════ */
+.features-section { padding: 100px 52px; max-width: 1120px; margin: 0 auto; }
+.features-head { text-align: center; margin-bottom: 64px; }
+.features-head .section-sub { margin: 0 auto; }
+.features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+.feat-card {
+  background: var(--card-bg);
+  border: 1.5px solid var(--card-border); border-radius: var(--radius-lg);
+  padding: 30px 26px;
+  transition: box-shadow 0.25s, transform 0.25s, border-color 0.25s, background 0.5s;
+}
+.feat-card:hover { box-shadow: 0 12px 40px rgba(15,25,35,0.1); transform: translateY(-5px); border-color: var(--mint-pastel); }
+.feat-icon-wrap {
+  width: 50px; height: 50px; border-radius: 14px;
+  background: var(--mint-light); display: flex; align-items: center; justify-content: center;
+  font-size: 22px; margin-bottom: 20px;
+  transition: transform 0.3s;
+}
+.feat-card:hover .feat-icon-wrap { transform: scale(1.12) rotate(-6deg); }
+.feat-card:nth-child(3n-1) .feat-icon-wrap { background: var(--orange-light); }
+.feat-card:nth-child(3n)   .feat-icon-wrap { background: var(--mauve-light); }
+.feat-title { font-family: 'Syne', sans-serif; font-size: 17px; font-weight: 700; color: var(--feat-text-color); margin-bottom: 10px; letter-spacing: -0.3px; transition: color 0.4s; }
+.feat-desc  { font-size: 13.5px; color: var(--section-sub-color); line-height: 1.68; transition: color 0.4s; }
+
+/* ══════════════════════════════════
+   HIGHLIGHTS
+══════════════════════════════════ */
+.highlights {
+  background: var(--hl-bg);
+  border-top: 1px solid var(--hl-border); border-bottom: 1px solid var(--hl-border);
+  padding: 44px 52px; display: flex; justify-content: center; gap: 80px;
+  transition: background 0.5s, border-color 0.5s;
+}
+.highlight-item { text-align: center; cursor: default; }
+.highlight-word {
+  font-family: 'Syne', sans-serif;
+  font-size: 30px; font-weight: 800; color: var(--mint);
+  letter-spacing: -0.5px; margin-bottom: 5px;
+  transition: transform 0.3s, color 0.4s;
+}
+.highlight-item:hover .highlight-word { transform: scale(1.08); }
+.highlight-item:nth-child(2) .highlight-word { color: var(--orange); }
+.highlight-item:nth-child(3) .highlight-word { color: var(--mauve); }
+.highlight-item:nth-child(4) .highlight-word { color: var(--mint-dark); }
+.highlight-desc { font-size: 13px; color: var(--hl-desc-color); transition: color 0.4s; }
+
+/* ══════════════════════════════════
+   CTA
+══════════════════════════════════ */
+.cta-section {
+  padding: 110px 52px; text-align: center;
+  background: linear-gradient(135deg, var(--cta-bg1) 0%, var(--cta-bg2) 50%, var(--cta-bg3) 100%);
+  position: relative; overflow: hidden;
+  transition: background 0.6s;
+}
+.cta-section::before {
+  content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+  width: 700px; height: 400px;
+  background: radial-gradient(ellipse, rgba(244,132,95,0.12) 0%, transparent 65%);
+  pointer-events: none;
+  animation: float 8s ease-in-out infinite;
+}
+.cta-inner { max-width: 620px; margin: 0 auto; position: relative; z-index: 1; }
+.cta-eyebrow {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--cta-eyebrow-bg); border: 1px solid var(--cta-eyebrow-border);
+  border-radius: 100px; padding: 5px 16px 5px 10px;
+  font-size: 12px; font-weight: 600; color: var(--cta-eyebrow-color);
+  letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 24px;
+  transition: background 0.4s, border-color 0.4s, color 0.4s;
+}
+.cta-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 52px; font-weight: 800; color: var(--cta-title-color);
+  letter-spacing: -2px; margin-bottom: 18px; line-height: 1.05;
+  transition: color 0.4s;
+}
+.cta-title span { color: var(--orange); font-style: italic; }
+.cta-sub { font-size: 17px; color: var(--cta-sub-color); font-weight: 300; margin-bottom: 42px; line-height: 1.65; transition: color 0.4s; }
+.cta-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+.btn-cta-primary {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 15px 30px; border-radius: 12px;
+  font-size: 15px; font-weight: 700;
+  color: var(--cta-btn-primary-color);
+  background: var(--cta-btn-primary-bg);
+  border: none; text-decoration: none; cursor: pointer;
+  transition: background 0.4s, color 0.4s, transform 0.12s;
+  font-family: 'DM Sans', sans-serif;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.15);
+}
+.btn-cta-primary:hover { transform: translateY(-2px); opacity: 0.9; }
+.btn-cta-secondary {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 15px 26px; border-radius: 12px;
+  font-size: 15px; font-weight: 500;
+  color: var(--cta-btn-sec-color);
+  background: transparent; border: 1.5px solid var(--cta-btn-sec-border);
+  text-decoration: none; cursor: pointer;
+  transition: color 0.4s, border-color 0.4s;
+  font-family: 'DM Sans', sans-serif;
+}
+.btn-cta-secondary:hover { opacity: 0.7; }
+
+/* ══════════════════════════════════
+   FOOTER
+══════════════════════════════════ */
+.footer { background: var(--footer-bg); padding: 60px 52px 30px; color: var(--footer-text); transition: background 0.5s; }
+.footer-top { display: grid; grid-template-columns: 1.6fr 1fr 1fr 1fr; gap: 52px; margin-bottom: 52px; }
+.footer-brand-logo { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+.footer-brand-logo img { width: 36px; height: 36px; border-radius: 9px; object-fit: cover; }
+.footer-brand-name { font-family: 'Syne', sans-serif; font-size: 17px; font-weight: 800; color: var(--footer-name); }
+.footer-brand-desc { font-size: 13px; line-height: 1.7; color: var(--footer-desc); }
+.footer-col-title { font-size: 13px; font-weight: 700; color: var(--footer-title); margin-bottom: 18px; }
+.footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 11px; }
+.footer-col ul a { font-size: 13px; color: var(--footer-link); text-decoration: none; transition: color 0.2s; }
+.footer-col ul a:hover { color: rgba(255,255,255,0.85); }
+.footer-contact-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--footer-link); margin-bottom: 11px; }
+.footer-bottom { border-top: 1px solid var(--footer-border); padding-top: 26px; display: flex; justify-content: space-between; align-items: center; }
+.footer-copy { font-size: 12px; color: var(--footer-copy); }
+.footer-policy a { font-size: 12px; color: var(--footer-copy); text-decoration: none; transition: color 0.15s; }
+.footer-policy a:hover { color: rgba(255,255,255,0.55); }
+
+/* ══════════════════════════════════
+   RESPONSIVE
+══════════════════════════════════ */
+@media (max-width: 1000px) {
+  .hero { flex-direction: column-reverse; padding: 60px 28px; gap: 44px; min-height: auto; }
+  .hero-left, .hero-right { max-width: 100%; }
+  .hero-h1 { font-size: 44px; letter-spacing: -1.5px; }
+  .nav { padding: 0 24px; }
+  .ia-inner, .how-inner { grid-template-columns: 1fr; gap: 52px; }
+  .portals-grid, .fair-grid { grid-template-columns: 1fr; gap: 16px; }
+  .features-grid { grid-template-columns: 1fr 1fr; }
+  .footer-top { grid-template-columns: 1fr 1fr; gap: 36px; }
+  .highlights { gap: 36px; flex-wrap: wrap; }
+  .stats-bar { flex-wrap: wrap; gap: 16px; padding: 28px; }
+}
+@media (max-width: 640px) {
+  .hero-h1 { font-size: 36px; letter-spacing: -1.5px; }
+  .features-grid { grid-template-columns: 1fr; }
+  .footer-top { grid-template-columns: 1fr; }
+  .nav-links { display: none; }
+  .section-title { font-size: 30px; }
+  .cta-title { font-size: 36px; }
+  .portals-grid { grid-template-columns: 1fr; }
+  .portal-btns { flex-direction: column; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ── NAVBAR ── -->
+<nav class="nav">
+  <a href="{{ url_for('index') }}" class="nav-logo">
+    <img src="{{ url_for('static', filename='logo.png') }}" alt="Djadara RH">
+    <span class="nav-logo-name">Djadara RH</span>
+  </a>
+
+  <ul class="nav-links">
+    <li><a href="#fonctionnalites">Fonctionnalités</a></li>
+    <li><a href="#comment-ca-marche">Comment ça marche</a></li>
+    <li><a href="#espaces">Nos espaces</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+
+  <div class="nav-actions">
+    <button class="theme-toggle" id="themeToggle" title="Changer de thème">🌙</button>
+    <a href="{{ url_for('login') }}" class="btn-ghost-white">Se connecter</a>
+    <a href="{{ url_for('register') }}" class="btn-mint">S'inscrire gratuitement</a>
+  </div>
+</nav>
+
+
+<!-- ── HERO ── -->
+<section class="hero">
+<div class="hero-right">
+    <div class="hero-badge">
+      <span class="hero-badge-dot"></span>
+       esssayer
+    </div>
+    <h1 class="hero-h1">Votre ATS<br>cache vos<br><span class="accent">meilleurs</span><br>candidats</h1>
+    <p class="hero-desc">Djadara RH analyse automatiquement les CV grâce à l'intelligence artificielle et vous donne un score de correspondance précis pour chaque offre — en quelques secondes.</p>
+    <div class="hero-cta">
+      <a href="{{ url_for('register') }}" class="btn-hero-primary">⚡ Commencer gratuitement</a>
+      <a href="#comment-ca-marche" class="btn-hero-secondary">▶ Voir comment ça marche</a>
+    </div>
+    <div class="hero-trust">
+      <span class="hero-trust-check">✓</span>
+      Gratuit · Aucune carte requise · Résultats en secondes
+    </div>
+  </div>
+
+
+
+  <div class="hero-blob1"></div>
+  <div class="hero-blob2"></div>
+
+  <div class="hero-left">
+    <div class="hero-img-wrap">
+      <div class="hero-illustration">
+        <div class="mock-dashboard">
+          <div class="mock-dash-header">
+            <div class="mock-dash-title">Résultats du matching IA</div>
+            <div class="mock-dash-badge">LIVE IA</div>
+          </div>
+          <div class="mock-candidate-row">
+            <div class="mock-av" style="background:rgba(61,170,122,0.2);color:#88D4B3;">AM</div>
+            <div style="flex:1;">
+              <div class="mock-cn">Amine Meziane</div>
+              <div class="mock-cs">Python · Flask · PostgreSQL</div>
+              <div class="mock-score-bar" style="margin-top:6px;">
+                <div class="mock-bar-bg"><div class="mock-bar-fg" style="width:94%;background:var(--mint);"></div></div>
+              </div>
+            </div>
+            <div class="mock-pct-label" style="color:var(--mint);">94%</div>
+          </div>
+          <div class="mock-candidate-row">
+            <div class="mock-av" style="background:rgba(244,132,95,0.2);color:#F4845F;">SK</div>
+            <div style="flex:1;">
+              <div class="mock-cn">Sara Khelifi</div>
+              <div class="mock-cs">Django · React · Docker</div>
+              <div class="mock-score-bar" style="margin-top:6px;">
+                <div class="mock-bar-bg"><div class="mock-bar-fg" style="width:81%;background:var(--orange);"></div></div>
+              </div>
+            </div>
+            <div class="mock-pct-label" style="color:var(--orange);">81%</div>
+          </div>
+          <div class="mock-candidate-row">
+            <div class="mock-av" style="background:rgba(155,126,200,0.2);color:#9B7EC8;">YB</div>
+            <div style="flex:1;">
+              <div class="mock-cn">Yacine Brahimi</div>
+              <div class="mock-cs">FastAPI · MongoDB</div>
+              <div class="mock-score-bar" style="margin-top:6px;">
+                <div class="mock-bar-bg"><div class="mock-bar-fg" style="width:67%;background:var(--mauve);"></div></div>
+              </div>
+            </div>
+            <div class="mock-pct-label" style="color:var(--mauve);">67%</div>
+          </div>
+          <div class="mock-dash-footer">
+            <div class="mock-dash-info">⏱ Analysé en 1.3s · 5 CV traités</div>
+            <div class="mock-dash-tag">IA active</div>
+          </div>
         </div>
+      </div>
+    </div>
+  </div>
 
-        <nav class="sidebar-nav">
-            <a class="sidebar-link" href="#features">
-                <i class="fas fa-star"></i>
-                <span>Fonctionnalités</span>
-            </a>
-            <a class="sidebar-link" href="#steps">
-                <i class="fas fa-list-ol"></i>
-                <span>Comment ça marche</span>
-            </a>
-            <a class="sidebar-link" href="#contact">
-                <i class="fas fa-envelope"></i>
-                <span>Contact</span>
-            </a>
-        </nav>
+  
+</section>
 
-        <div class="sidebar-footer">
-            <a class="btn btn-login w-100 mb-2 text-center" href="/login">
-                <i class="fas fa-sign-in-alt me-1"></i> Se connecter
-            </a>
-            <a class="btn btn-signup w-100 text-center" href="/register">
-                <i class="fas fa-user-plus me-1"></i> S'inscrire
-            </a>
+
+<!-- ── STATS BAR ── -->
+<div class="stats-bar">
+  <div class="stat-item reveal delay-1">
+    <div class="stat-n"><em class="counter" data-target="2400">0</em>+</div>
+    <div class="stat-l">Candidats</div>
+  </div>
+  <div class="stat-item reveal delay-2">
+    <div class="stat-n"><em class="counter" data-target="180">0</em>+</div>
+    <div class="stat-l">Entreprises</div>
+  </div>
+  <div class="stat-item reveal delay-3">
+    <div class="stat-n"><em class="counter" data-target="94">0</em>%</div>
+    <div class="stat-l">Précision IA</div>
+  </div>
+  <div class="stat-item reveal delay-4">
+    <div class="stat-n"><em>1.3</em>s</div>
+    <div class="stat-l">Analyse moyenne</div>
+  </div>
+</div>
+
+
+<!-- ── SECTION IA ── -->
+<section class="ia-section" id="fonctionnalites">
+  <div class="ia-inner">
+    <div class="ia-left">
+      <div class="ia-stat-card reveal delay-1">
+        <div class="ia-stat-icon" style="background:var(--mint-light);">🎯</div>
+        <div class="ia-stat-body">
+          <div class="ia-stat-num" style="color:var(--mint);">94%</div>
+          <div class="ia-stat-label">Précision du matching IA</div>
+          <div class="ia-stat-bar-track"><div class="ia-stat-bar-fill reveal-bar" style="width:94%;background:var(--mint);"></div></div>
         </div>
-    </aside>
+      </div>
+      <div class="ia-stat-card reveal delay-2">
+        <div class="ia-stat-icon" style="background:var(--orange-light);">⚡</div>
+        <div class="ia-stat-body">
+          <div class="ia-stat-num" style="color:var(--orange);">1.3s</div>
+          <div class="ia-stat-label">Temps moyen d'analyse d'un CV</div>
+          <div class="ia-stat-bar-track"><div class="ia-stat-bar-fill reveal-bar" style="width:75%;background:var(--orange);"></div></div>
+        </div>
+      </div>
+      <div class="ia-stat-card reveal delay-3">
+        <div class="ia-stat-icon" style="background:var(--mauve-light);">📊</div>
+        <div class="ia-stat-body">
+          <div class="ia-stat-num" style="color:var(--mauve);">∞</div>
+          <div class="ia-stat-label">CV analysables par offre</div>
+          <div class="ia-stat-bar-track"><div class="ia-stat-bar-fill reveal-bar" style="width:100%;background:var(--mauve);"></div></div>
+        </div>
+      </div>
+      <div class="ia-stat-card reveal delay-4">
+        <div class="ia-stat-icon" style="background:var(--mint-light);">🛡️</div>
+        <div class="ia-stat-body">
+          <div class="ia-stat-num" style="color:var(--mint-dark);">100%</div>
+          <div class="ia-stat-label">Données sécurisées et privées</div>
+          <div class="ia-stat-bar-track"><div class="ia-stat-bar-fill reveal-bar" style="width:100%;background:var(--mint-dark);"></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="ia-right reveal-right">
+      <div class="section-tag">Intelligence Artificielle</div>
+      <h2 class="section-title">Un scoring qui place votre offre au premier plan</h2>
+      <p class="section-sub">Notre IA analyse chaque CV en profondeur — compétences, expérience, formation — et lui attribue un score transparent basé sur <em>votre</em> description de poste.</p>
+      <div class="ia-features">
+        <div class="ia-feature"><div class="ia-feat-dot"></div><div class="ia-feat-text"><strong>Pas de boîte noire :</strong> voyez le score détaillé critère par critère pour chaque candidat.</div></div>
+        <div class="ia-feature"><div class="ia-feat-dot" style="background:var(--orange);"></div><div class="ia-feat-text"><strong>Critères personnalisés :</strong> le scoring est généré directement depuis votre description de poste.</div></div>
+        <div class="ia-feature"><div class="ia-feat-dot" style="background:var(--mauve);"></div><div class="ia-feat-text"><strong>Réduction des biais :</strong> chaque candidat est évalué sur les mêmes critères objectifs.</div></div>
+      </div>
+    </div>
+  </div>
+</section>
 
-    <!-- Overlay (ferme sidebar au clic) -->
-    <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-    <!-- Contenu principal -->
-    <div class="main-content" id="mainContent">
+<!-- ── HIGHLIGHTS ── -->
+<div class="highlights">
+  <div class="highlight-item reveal delay-1"><div class="highlight-word">Rapide</div><div class="highlight-desc">Analyse en quelques secondes</div></div>
+  <div class="highlight-item reveal delay-2"><div class="highlight-word">Précis</div><div class="highlight-desc">Score de compatibilité fiable</div></div>
+  <div class="highlight-item reveal delay-3"><div class="highlight-word">Illimité</div><div class="highlight-desc">CV analysables par offre</div></div>
+  <div class="highlight-item reveal delay-4"><div class="highlight-word">Gratuit</div><div class="highlight-desc">Aucun abonnement requis</div></div>
+</div>
 
-        <!-- Hero Section -->
-        <section class="hero-section">
-            <div class="container">
-                <div class="row justify-content-center">
-                    <div class="col-lg-8 col-md-10 text-center hero-content">
 
-                        <h1 class="hero-title">
-                            Recrutez les meilleurs<br>
-                            <span class="gradient-text">profils en un instant</span>
-                        </h1>
+<!-- ── FAIR SECTION ── -->
+<section class="fair-section">
+  <div class="fair-inner">
+    <div class="section-tag reveal">Une méthode équitable</div>
+    <h2 class="section-title reveal">Un recrutement juste,<br>cohérent et rapide</h2>
+    <p class="section-sub reveal">Donnez à chaque candidat une évaluation équitable basée sur des critères objectifs.</p>
+    <div class="fair-grid">
+      <div class="fair-card reveal delay-1">
+        <div class="fair-icon" style="background:rgba(61,170,122,0.15);">⏱</div>
+        <div class="fair-title">Shortlist en quelques minutes</div>
+        <div class="fair-desc">Notre IA score l'ensemble de votre pool de CV en quelques instants, faisant remonter les profils les plus pertinents en tête.</div>
+      </div>
+      <div class="fair-card reveal delay-2">
+        <div class="fair-icon" style="background:rgba(244,132,95,0.15);">⚖️</div>
+        <div class="fair-title">Juste par conception</div>
+        <div class="fair-desc">Chaque candidat est évalué sur les mêmes critères issus de votre offre. Pas de favoritisme, pas de biais de présentation.</div>
+      </div>
+      <div class="fair-card reveal delay-3">
+        <div class="fair-icon" style="background:rgba(155,126,200,0.15);">🔧</div>
+        <div class="fair-title">Vous gardez le contrôle</div>
+        <div class="fair-desc">Consultez les raisons de chaque score, modifiez les critères avant le lancement et ajustez les résultats si nécessaire.</div>
+      </div>
+    </div>
+  </div>
+</section>
 
-                        <p class="hero-subtitle">
-                            Yassir RH analyse automatiquement les CV de vos candidats grâce à
-                            l'intelligence artificielle et vous propose un matching précis avec vos offres d'emploi.
-                        </p>
 
-                        <div class="hero-cta">
-                            <a href="/login" class="btn btn-primary-custom btn-lg">
-                                <i class="fas fa-sparkles"></i>
-                                Commencer maintenant
-                                <i class="fas fa-arrow-right"></i>
-                            </a>
-                            <p class="cta-note">Gratuit · Aucune carte requise</p>
-                        </div>
+<!-- ── PORTALS ── -->
+<section class="portals-section" id="espaces">
+  <div class="portals-inner">
+    <div class="portals-head">
+      <div class="section-tag reveal">Accès multi-utilisateurs</div>
+      <h2 class="section-title reveal">Choisissez votre espace</h2>
+      <p class="section-sub reveal" style="margin:0 auto;">Une plateforme pensée pour chaque acteur du recrutement</p>
+    </div>
+    <div class="portals-grid">
+      <div class="portal-card candidat reveal-left">
+        <div class="portal-icon">👤</div>
+        <div class="portal-role">Espace Candidat</div>
+        <h3 class="portal-title">Candidat</h3>
+        <p class="portal-desc">Trouvez l'offre qui correspond vraiment à votre profil. Déposez votre CV, postulez et suivez vos candidatures en temps réel.</p>
+        <ul class="portal-features">
+          <li class="portal-feature"><span class="portal-feat-dot"></span>Créez votre profil et déposez votre CV</li>
+          <li class="portal-feature"><span class="portal-feat-dot"></span>Consultez les offres et postulez</li>
+          <li class="portal-feature"><span class="portal-feat-dot"></span>Suivez vos candidatures</li>
+          <li class="portal-feature"><span class="portal-feat-dot"></span>Recevez vos convocations d'entretien</li>
+        </ul>
+        <div class="portal-btns">
+          <a href="{{ url_for('login') }}?role=candidat" class="portal-btn-primary">Se connecter</a>
+          <a href="{{ url_for('register') }}?role=candidat" class="portal-btn-secondary">S'inscrire</a>
+        </div>
+      </div>
+      <div class="portal-card entreprise reveal-right">
+        <div class="portal-icon">🏢</div>
+        <div class="portal-role">Espace Entreprise</div>
+        <h3 class="portal-title">Entreprise</h3>
+        <p class="portal-desc">Publiez vos offres, analysez les profils grâce aux scores IA, planifiez vos entretiens et pilotez tout votre recrutement.</p>
+        <ul class="portal-features">
+          <li class="portal-feature"><span class="portal-feat-dot"></span>Créez et gérez vos offres d'emploi</li>
+          <li class="portal-feature"><span class="portal-feat-dot"></span>Consultez les scores IA par candidat</li>
+          <li class="portal-feature"><span class="portal-feat-dot"></span>Planifiez et gérez les entretiens</li>
+          <li class="portal-feature"><span class="portal-feat-dot"></span>Envoyez des notifications automatisées</li>
+        </ul>
+        <div class="portal-btns">
+          <a href="{{ url_for('login') }}?role=entreprise" class="portal-btn-primary">Se connecter</a>
+          <a href="{{ url_for('register') }}?role=entreprise" class="portal-btn-secondary">S'inscrire</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
-                    </div>
-                </div>
-            </div>
-        </section>
 
-        <!-- Features Section -->
-        <section class="features-section" id="features">
-            <div class="container">
-                <div class="text-center mb-5">
-                    <h2 class="section-title">Tout ce dont vous avez besoin</h2>
-                    <p class="section-subtitle">Un workflow simple en 3 étapes pour recruter intelligemment</p>
-                </div>
-                <div class="row g-4">
-                    <div class="col-md-4">
-                        <div class="feature-card">
-                            <div class="feature-icon">
-                                <i class="fas fa-briefcase"></i>
-                            </div>
-                            <h5 class="feature-title">Gérez vos offres</h5>
-                            <p class="feature-desc">Créez et publiez vos offres d'emploi en quelques clics avec tous les critères requis.</p>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="feature-card">
-                            <div class="feature-icon">
-                                <i class="fas fa-file-upload"></i>
-                            </div>
-                            <h5 class="feature-title">Analysez les CV</h5>
-                            <p class="feature-desc">Importez les CV de vos candidats et laissez l'IA extraire toutes les informations automatiquement.</p>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="feature-card">
-                            <div class="feature-icon">
-                                <i class="fas fa-bolt"></i>
-                            </div>
-                            <h5 class="feature-title">Matching intelligent</h5>
-                            <p class="feature-desc">Obtenez un score de compatibilité précis entre chaque candidat et votre offre en secondes.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
+<!-- ── HOW IT WORKS ── -->
+<section class="how-section" id="comment-ca-marche">
+  <div class="how-inner">
+    <div class="reveal-left">
+      <div class="section-tag">Comment ça fonctionne</div>
+      <h2 class="section-title">4 étapes pour trouver le candidat idéal</h2>
+      <p class="section-sub">Un processus simple, du dépôt des CV à la décision finale.</p>
+    </div>
+    <div class="how-steps reveal-right">
+      <div class="how-step">
+        <div class="how-num">1</div>
+        <div><div class="how-step-title">Publiez une offre d'emploi</div><p class="how-step-desc">Saisissez le titre du poste, les compétences souhaitées et le niveau d'expérience attendu.</p></div>
+      </div>
+      <div class="how-step">
+        <div class="how-num">2</div>
+        <div><div class="how-step-title">Les candidats postulent et déposent leur CV</div><p class="how-step-desc">Les candidats s'inscrivent, complètent leur profil et postulent directement à vos offres.</p></div>
+      </div>
+      <div class="how-step">
+        <div class="how-num">3</div>
+        <div><div class="how-step-title">L'IA analyse et note chaque profil</div><p class="how-step-desc">La plateforme lit chaque CV et lui attribue un score de correspondance selon votre offre.</p></div>
+      </div>
+      <div class="how-step">
+        <div class="how-num">4</div>
+        <div><div class="how-step-title">Consultez le classement et planifiez</div><p class="how-step-desc">Les candidats sont triés par score. Planifiez directement vos entretiens depuis la plateforme.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
 
-        <!-- Steps Section -->
-        <section class="steps-section py-5" id="steps">
-            <div class="container">
-                <div class="text-center mb-5">
-                    <h2 class="section-title">Comment ça fonctionne ?</h2>
-                    <p class="section-subtitle">En 4 étapes simples, trouvez le candidat idéal</p>
-                </div>
-                <div class="row g-4 align-items-start">
-                    <div class="col-md-3 text-center">
-                        <div class="step-number">1</div>
-                        <h6 class="step-title mt-3">Publiez une offre</h6>
-                        <p class="step-desc">Saisissez le poste, les compétences et critères attendus.</p>
-                    </div>
-                    <div class="col-md-3 text-center">
-                        <div class="step-number">2</div>
-                        <h6 class="step-title mt-3">Uploadez les CV</h6>
-                        <p class="step-desc">Importez plusieurs CV PDF en une seule fois.</p>
-                    </div>
-                    <div class="col-md-3 text-center">
-                        <div class="step-number">3</div>
-                        <h6 class="step-title mt-3">Analyse automatique</h6>
-                        <p class="step-desc">L'IA extrait le texte et compare avec l'offre (TF-IDF + cosine + KNN).</p>
-                    </div>
-                    <div class="col-md-3 text-center">
-                        <div class="step-number">4</div>
-                        <h6 class="step-title mt-3">Résultats classés</h6>
-                        <p class="step-desc">Consultez le score de matching et le classement de chaque candidat.</p>
-                    </div>
-                </div>
-            </div>
-        </section>
 
-        <!-- CTA Section -->
-        <section class="cta-section py-5">
-            <div class="container text-center">
-                <h2 class="cta-title mb-3">Prêt à recruter plus intelligemment ?</h2>
-                <p class="cta-subtitle mb-4">Commencez gratuitement et découvrez la puissance de l'IA pour votre processus de recrutement</p>
-                <div class="d-flex gap-3 justify-content-center flex-wrap">
-                    <a href="/register" class="btn btn-primary-custom btn-lg">
-                        <i class="fas fa-user-plus"></i> Créer un compte
-                    </a>
-                    <a href="/login" class="btn btn-outline-custom btn-lg">
-                        <i class="fas fa-sign-in-alt"></i> Se connecter
-                    </a>
-                </div>
-            </div>
-        </section>
+<!-- ── FEATURES ── -->
+<section class="features-section">
+  <div class="features-head">
+    <div class="section-tag reveal">Fonctionnalités</div>
+    <h2 class="section-title reveal">Tout ce dont vous avez besoin</h2>
+    <p class="section-sub reveal" style="margin:0 auto;">Un outil simple et efficace pour recruter plus intelligemment</p>
+  </div>
+  <div class="features-grid">
+    <div class="feat-card reveal delay-1"><div class="feat-icon-wrap">💼</div><div class="feat-title">Gérez vos offres</div><p class="feat-desc">Créez, modifiez, fermez ou supprimez vos offres d'emploi en quelques clics depuis votre tableau de bord.</p></div>
+    <div class="feat-card reveal delay-2"><div class="feat-icon-wrap">📄</div><div class="feat-title">Candidatures automatiques</div><p class="feat-desc">Les candidats postulent directement. Leurs CV sont analysés automatiquement dès la candidature.</p></div>
+    <div class="feat-card reveal delay-3"><div class="feat-icon-wrap">✨</div><div class="feat-title">Matching IA instantané</div><p class="feat-desc">Chaque candidat reçoit un score de compatibilité précis. Plus le score est élevé, plus le profil correspond.</p></div>
+    <div class="feat-card reveal delay-4"><div class="feat-icon-wrap">📅</div><div class="feat-title">Gestion des entretiens</div><p class="feat-desc">Planifiez vos entretiens directement depuis la plateforme et envoyez des convocations automatiques.</p></div>
+    <div class="feat-card reveal delay-5"><div class="feat-icon-wrap">🔔</div><div class="feat-title">Notifications en temps réel</div><p class="feat-desc">Candidats et entreprises reçoivent des notifications à chaque étape du processus de recrutement.</p></div>
+    <div class="feat-card reveal delay-6"><div class="feat-icon-wrap">🛡️</div><div class="feat-title">Sécurisé &amp; privé</div><p class="feat-desc">Vos données sont accessibles uniquement depuis votre compte. Chaque espace est isolé et protégé.</p></div>
+  </div>
+</section>
 
-        <!-- Footer -->
-        <footer class="footer py-5" id="contact">
-            <div class="container">
-                <div class="row mb-4">
-                    <div class="col-md-4 mb-4 mb-md-0">
-                        <div class="d-flex align-items-center gap-2 mb-2">
-                            <div class="brand-logo brand-logo-sm">YR</div>
-                            <span class="fw-bold">Yassir RH</span>
-                        </div>
-                        <p class="small" style="color:#94A3B8;">Plateforme intelligente de recrutement basée sur l'IA pour transformer votre processus de sélection.</p>
-                    </div>
-                    <div class="col-md-4 mb-4 mb-md-0">
-                        <h6 class="fw-bold mb-3">Liens</h6>
-                        <ul class="list-unstyled small footer-links">
-                            <li><a href="#features">Fonctionnalités</a></li>
-                            <li><a href="#steps">Comment ça marche</a></li>
-                            <li><a href="/login">Connexion</a></li>
-                            <li><a href="/register">Inscription</a></li>
-                        </ul>
-                    </div>
-                    <div class="col-md-4">
-                        <h6 class="fw-bold mb-3">Nous Contacter</h6>
-                        <p class="text-muted small">
-                            <i class="fas fa-envelope me-2"></i> info@yassir-rh.com<br><br>
-                            <i class="fas fa-phone me-2"></i> +213 XX XX XX XX
-                        </p>
-                    </div>
-                </div>
-                <hr>
-                <div class="text-center text-muted small">
-                    <p class="mb-0">&copy; 2026 Yassir RH. Tous droits réservés. | <a href="#">Politique de confidentialité</a></p>
-                </div>
-            </div>
-        </footer>
 
-    </div><!-- end main-content -->
+<!-- ── CTA ── -->
+<section class="cta-section" id="contact">
+  <div class="cta-inner">
+    <div class="cta-eyebrow reveal">🚀 Lancez-vous maintenant</div>
+    <h2 class="cta-title reveal">Arrêtez de perdre<br>vos <span>meilleurs</span> candidats</h2>
+    <p class="cta-sub reveal">Des scores clairs, des comparaisons équitables, une shortlist solide. Si vous êtes prêt à abandonner les filtres à mots-clés, vous savez quoi faire.</p>
+    <div class="cta-btns reveal">
+      <a href="{{ url_for('register') }}" class="btn-cta-primary">👤 Créer un compte</a>
+      <a href="{{ url_for('login') }}" class="btn-cta-secondary">→ Se connecter</a>
+    </div>
+  </div>
+</section>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        const sidebar     = document.getElementById('sidebar');
-        const toggle      = document.getElementById('sidebarToggle');
-        const overlay     = document.getElementById('sidebarOverlay');
-        const main        = document.getElementById('mainContent');
-        const icon        = document.getElementById('toggleIcon');
 
-        function openSidebar() {
-            sidebar.classList.add('open');
-            overlay.classList.add('active');
-            main.classList.add('shifted');
-            icon.className = 'fas fa-times';
-        }
+<!-- ── FOOTER ── -->
+<footer class="footer">
+  <div class="footer-top">
+    <div>
+      <div class="footer-brand-logo">
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="Djadara RH">
+        <span class="footer-brand-name">Djadara RH</span>
+      </div>
+      <p class="footer-brand-desc">Plateforme intelligente de recrutement basée sur l'IA — transformez votre processus de sélection.</p>
+    </div>
+    <div class="footer-col">
+      <div class="footer-col-title">Produit</div>
+      <ul>
+        <li><a href="#fonctionnalites">Fonctionnalités</a></li>
+        <li><a href="#comment-ca-marche">Comment ça marche</a></li>
+        <li><a href="{{ url_for('register') }}">S'inscrire</a></li>
+        <li><a href="{{ url_for('login') }}">Connexion</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <div class="footer-col-title">Légal</div>
+      <ul>
+        <li><a href="#">Confidentialité</a></li>
+        <li><a href="#">Conditions d'utilisation</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <div class="footer-col-title">Contact</div>
+      <div class="footer-contact-item">✉ info@djadara-rh.com</div>
+      <div class="footer-contact-item">📞 +213 XX XX XX XX</div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div class="footer-copy">© 2026 Djadara RH. Tous droits réservés.</div>
+    <div class="footer-policy"><a href="#">Politique de confidentialité</a></div>
+  </div>
+</footer>
 
-        function closeSidebar() {
-            sidebar.classList.remove('open');
-            overlay.classList.remove('active');
-            main.classList.remove('shifted');
-            icon.className = 'fas fa-bars';
-        }
 
-        toggle.addEventListener('click', () => {
-            sidebar.classList.contains('open') ? closeSidebar() : openSidebar();
+<!-- ══════════════════════════════════
+     JAVASCRIPT — Animations + Toggle
+══════════════════════════════════ -->
+<script>
+(function() {
+  /* ── 1. THEME TOGGLE ── */
+  const toggle = document.getElementById('themeToggle');
+  const body   = document.body;
+  const saved  = localStorage.getItem('djadara-theme');
+  if (saved === 'light') { body.classList.add('light'); toggle.textContent = '☀️'; }
+
+  toggle.addEventListener('click', () => {
+    const isLight = body.classList.toggle('light');
+    toggle.textContent = isLight ? '☀️' : '🌙';
+    localStorage.setItem('djadara-theme', isLight ? 'light' : 'dark');
+    // petit effet de rotation
+    toggle.style.transform = 'rotate(360deg) scale(1.2)';
+    setTimeout(() => toggle.style.transform = '', 400);
+  });
+
+  /* ── 2. SCROLL REVEAL ── */
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        // animer les barres dans les cartes stats
+        entry.target.querySelectorAll('.reveal-bar').forEach(bar => {
+          const w = bar.style.width;
+          bar.style.width = '0';
+          bar.style.transition = 'width 1.2s cubic-bezier(.22,.68,0,1.1) 0.3s';
+          requestAnimationFrame(() => requestAnimationFrame(() => bar.style.width = w));
         });
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.15 });
 
-        overlay.addEventListener('click', closeSidebar);
+  document.querySelectorAll('.reveal, .reveal-left, .reveal-right, .reveal-scale')
+    .forEach(el => observer.observe(el));
 
-        // Fermer au clic sur un lien sidebar
-        document.querySelectorAll('.sidebar-link').forEach(link => {
-            link.addEventListener('click', closeSidebar);
-        });
-    </script>
-</body>
-</html>
+  /* ── 3. COMPTEURS ANIMÉS ── */
+  const counterObs = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      const el = entry.target;
+      const target = parseInt(el.dataset.target);
+      const duration = 1800;
+      const start = performance.now();
+      function update(now) {
+        const elapsed = now - start;
+        const progress = Math.min(elapsed / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        el.textContent = Math.floor(eased * target).toLocaleString('fr-FR');
+        if (progress < 1) requestAnimationFrame(update);
+        else el.textContent = target.toLocaleString('fr-FR');
+      }
+      requestAnimationFrame(update);
+      counterObs.unobserve(el);
+    });
+  }, { threshold: 0.5 });
+  document.querySelectorAll('.counter').forEach(el => counterObs.observe(el));
+
+  /* ── 4. PARALLAX BLOBS ── */
+  document.addEventListener('mousemove', (e) => {
+    const blob1 = document.querySelector('.hero-blob1');
+    const blob2 = document.querySelector('.hero-blob2');
+    if (!blob1 || !blob2) return;
+    const x = (e.clientX / window.innerWidth - 0.5) * 30;
+    const y = (e.clientY / window.innerHeight - 0.5) * 20;
+    blob1.style.transform = `translate(${x}px, ${y}px)`;
+    blob2.style.transform = `translate(${-x * 0.6}px, ${-y * 0.6}px)`;
+  });
+
+  /* ── 5. NAVBAR scroll shadow ── */
+  const nav = document.querySelector('.nav');
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 20) {
+      nav.style.boxShadow = '0 4px 24px rgba(0,0,0,0.15)';
+    } else {
+      nav.style.boxShadow = 'none';
+    }
+  }, { passive: true });
+
+  /* ── 6. HOVER TILT sur les cartes ── */
+  document.querySelectorAll('.ia-stat-card, .feat-card, .portal-card, .fair-card').forEach(card => {
+    card.addEventListener('mousemove', (e) => {
+      const rect = card.getBoundingClientRect();
+      const x = (e.clientX - rect.left) / rect.width  - 0.5;
+      const y = (e.clientY - rect.top)  / rect.height - 0.5;
+      card.style.transform = `translateY(-6px) rotateY(${x * 6}deg) rotateX(${-y * 6}deg)`;
+    });
+    card.addEventListener('mouseleave', () => {
+      card.style.transform = '';
+      card.style.transition = 'transform 0.4s ease';
+      setTimeout(() => card.style.transition = '', 400);
+    });
+  });
+
+  /* ── 7. MOCK DASHBOARD — lignes qui se rechargent ── */
+  const scores = [
+    { name: 'Amine Meziane', score: 94, color: 'var(--mint)' },
+    { name: 'Sara Khelifi',  score: 81, color: 'var(--orange)' },
+    { name: 'Yacine Brahimi',score: 67, color: 'var(--mauve)' },
+  ];
+  setInterval(() => {
+    document.querySelectorAll('.mock-bar-fg').forEach((bar, i) => {
+      const variation = (Math.random() - 0.5) * 6;
+      const newW = Math.min(99, Math.max(30, scores[i].score + variation));
+      bar.style.transition = 'width 1s ease';
+      bar.style.width = newW + '%';
+      const label = bar.closest('.mock-candidate-row')?.querySelector('.mock-pct-label');
+      if (label) label.textContent = Math.round(newW) + '%';
+    });
+  }, 3000);
+
+})();
+</script>
+
+{% endblock %}

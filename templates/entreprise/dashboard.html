@@ -1,0 +1,113 @@
+{% extends "entreprise/base.html" %}
+{% block title %}Dashboard Entreprise — Yassir RH{% endblock %}
+
+{% block content %}
+
+<!-- Page header -->
+<div class="page-header">
+  <div>
+    <div class="page-header-label">Espace Entreprise</div>
+    <h1>Tableau de bord</h1>
+    <p>Pilotez votre stratégie de recrutement.</p>
+  </div>
+</div>
+
+<!-- ── 4 stat cards ── -->
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px;">
+
+  <div class="card" style="padding:22px 20px;">
+    <div style="width:40px;height:40px;border-radius:12px;background:#EEF4F1;display:flex;align-items:center;justify-content:center;margin-bottom:14px;">
+      <i class="fa-solid fa-briefcase" style="color:#1D4535;font-size:1rem;"></i>
+    </div>
+    <div style="font-family:'Playfair Display',serif;font-size:2rem;font-weight:700;color:#0F172A;line-height:1;">
+      {{ stats.nb_offres if stats else 0 }}
+    </div>
+    <div style="font-size:0.78rem;color:#64748B;margin-top:4px;">Offres publiées</div>
+  </div>
+
+  <div class="card" style="padding:22px 20px;">
+    <div style="width:40px;height:40px;border-radius:12px;background:#EEF2FF;display:flex;align-items:center;justify-content:center;margin-bottom:14px;">
+      <i class="fa-solid fa-users" style="color:#4F46E5;font-size:1rem;"></i>
+    </div>
+    <div style="font-family:'Playfair Display',serif;font-size:2rem;font-weight:700;color:#0F172A;line-height:1;">
+      {{ stats.nb_recruteurs if stats else 0 }}
+    </div>
+    <div style="font-size:0.78rem;color:#64748B;margin-top:4px;">Recruteurs</div>
+  </div>
+
+  <div class="card" style="padding:22px 20px;">
+    <div style="width:40px;height:40px;border-radius:12px;background:#FFF7ED;display:flex;align-items:center;justify-content:center;margin-bottom:14px;">
+      <i class="fa-solid fa-chart-bar" style="color:#F59E0B;font-size:1rem;"></i>
+    </div>
+    <div style="font-family:'Playfair Display',serif;font-size:2rem;font-weight:700;color:#0F172A;line-height:1;">
+      {{ stats.nb_candidatures if stats else 0 }}
+    </div>
+    <div style="font-size:0.78rem;color:#64748B;margin-top:4px;">Candidatures</div>
+  </div>
+
+  <div class="card" style="padding:22px 20px;">
+    <div style="width:40px;height:40px;border-radius:12px;background:#F0FDF4;display:flex;align-items:center;justify-content:center;margin-bottom:14px;">
+      <i class="fa-solid fa-arrow-trend-up" style="color:#22C55E;font-size:1rem;"></i>
+    </div>
+    <div style="font-family:'Playfair Display',serif;font-size:2rem;font-weight:700;color:#0F172A;line-height:1;">
+      {{ stats.score_moyen if stats else '0%' }}
+    </div>
+    <div style="font-size:0.78rem;color:#64748B;margin-top:4px;">Score IA moyen</div>
+  </div>
+
+</div>
+
+<!-- ── Bottom row ── -->
+<div style="display:grid;grid-template-columns:1fr 300px;gap:16px;">
+
+  <!-- Candidatures par offre -->
+  <div class="card" style="padding:22px 24px;">
+    <div style="font-family:'Playfair Display',serif;font-size:1.1rem;color:#0F172A;margin-bottom:20px;">
+      Candidatures par offre
+    </div>
+    {% if offres and offres|selectattr('nb_candidatures')|list %}
+      {% for o in offres %}
+        {% if o.nb_candidatures > 0 %}
+        <div style="margin-bottom:14px;">
+          <div style="display:flex;justify-content:space-between;font-size:0.82rem;margin-bottom:5px;">
+            <span style="font-weight:500;color:#0F172A;">{{ o.titre }}</span>
+            <span style="color:#64748B;">{{ o.nb_candidatures }}</span>
+          </div>
+          <div style="height:6px;background:#F1F5F9;border-radius:10px;overflow:hidden;">
+            <div style="height:100%;background:#1D4535;border-radius:10px;width:{{ [o.nb_candidatures * 10, 100]|min }}%;"></div>
+          </div>
+        </div>
+        {% endif %}
+      {% endfor %}
+    {% else %}
+      <div style="text-align:center;padding:52px 16px;color:#94A3B8;font-size:0.875rem;">
+        Pas encore de données
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Gestion rapide -->
+  <div class="card" style="padding:22px 24px;align-self:start;">
+    <div style="font-family:'Playfair Display',serif;font-size:1.1rem;color:#0F172A;margin-bottom:16px;">
+      Gestion
+    </div>
+    <div style="display:flex;flex-direction:column;gap:4px;">
+      <a href="/entreprise/offres" style="display:flex;align-items:center;justify-content:space-between;padding:11px 12px;border-radius:10px;text-decoration:none;color:#0F172A;font-size:0.875rem;font-weight:500;transition:background 0.15s;" onmouseover="this.style.background='#F0F7F3'" onmouseout="this.style.background=''">
+        <span><i class="fa-solid fa-briefcase" style="margin-right:10px;color:#1D4535;font-size:0.85rem;"></i>Publier une offre</span>
+        <i class="fa-solid fa-arrow-right" style="color:#CBD5E1;font-size:0.72rem;"></i>
+      </a>
+      
+      <a href="/entreprise/stats" style="display:flex;align-items:center;justify-content:space-between;padding:11px 12px;border-radius:10px;text-decoration:none;color:#0F172A;font-size:0.875rem;font-weight:500;transition:background 0.15s;" onmouseover="this.style.background='#F0F7F3'" onmouseout="this.style.background=''">
+        <span><i class="fa-solid fa-chart-bar" style="margin-right:10px;color:#1D4535;font-size:0.85rem;"></i>Statistiques RH</span>
+        <i class="fa-solid fa-arrow-right" style="color:#CBD5E1;font-size:0.72rem;"></i>
+      </a>
+      <a href="/entreprise/profil" style="display:flex;align-items:center;justify-content:space-between;padding:11px 12px;border-radius:10px;text-decoration:none;color:#0F172A;font-size:0.875rem;font-weight:500;transition:background 0.15s;" onmouseover="this.style.background='#F0F7F3'" onmouseout="this.style.background=''">
+        <span><i class="fa-solid fa-building" style="margin-right:10px;color:#1D4535;font-size:0.85rem;"></i>Profil entreprise</span>
+        <i class="fa-solid fa-arrow-right" style="color:#CBD5E1;font-size:0.72rem;"></i>
+      </a>
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,34 @@
+{% extends "candidat/base.html" %}
+{% block title %}Mes candidatures — Yassir RH{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Mes candidatures</h1>
+    <p>Suivez l'avancement de vos candidatures</p>
+  </div>
+</div>
+
+{% if candidatures %}
+  <div style="display:flex;flex-direction:column;gap:12px;max-width:980px;margin:0 auto;">
+    {% for ca in candidatures %}
+      <div style="background:rgba(255,255,255,0.95);border:1px solid rgba(226,232,240,1);border-radius:14px;padding:16px 18px;">
+        <div style="font-weight:800;color:#0F172A;">{{ ca.offre_titre }}</div>
+        <div style="color:#64748B;font-size:0.85rem;margin-top:4px;">
+          {{ ca.entreprise_nom }} • {{ ca.type_contrat }} • {{ ca.localisation }}
+        </div>
+        <div style="margin-top:8px;color:#10B981;font-weight:800;font-size:0.85rem;">
+          Score: {{ ca.score_global }}/100 • Statut: {{ ca.statut }} • Rang: {{ ca.rang }}
+        </div>
+        {% if ca.entretien_dt %}
+          <div style="margin-top:6px;color:#475569;font-size:0.9rem;">
+            Entretien : {{ ca.entretien_dt }}
+          </div>
+        {% endif %}
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="card"><div style="text-align:center;padding:48px 16px;color:#64748B;">Aucune candidature.</div></div>
+{% endif %}
+{% endblock %}

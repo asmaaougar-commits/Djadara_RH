@@ -1,0 +1,198 @@
+{% extends "entreprise/base.html" %}
+{% block title %}Statistiques RH — Djadara RH{% endblock %}
+
+{% block head %}
+<style>
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  .stat-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px 30px;
+    box-shadow: var(--shadow);
+  }
+
+  .stat-card-title {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--orange);
+    margin-bottom: 20px;
+  }
+
+  /* ── Distribution des scores ── */
+  .score-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  .score-row:last-child { margin-bottom: 0; }
+  .score-label {
+    font-size: 0.78rem;
+    color: var(--muted);
+    font-weight: 500;
+    width: 150px;
+    flex-shrink: 0;
+  }
+  .score-bar-track {
+    flex: 1;
+    height: 8px;
+    background: #F1F5F9;
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .score-bar-fill {
+    height: 100%;
+    border-radius: 6px;
+    transition: width 0.6s ease;
+  }
+  .score-count {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--text);
+    width: 24px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  /* ── Top offres ── */
+  .offre-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+    gap: 12px;
+  }
+  .offre-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .offre-row:first-child { padding-top: 0; }
+  .offre-titre {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text);
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .offre-meta {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-shrink: 0;
+  }
+  .offre-nb {
+    font-size: 0.78rem;
+    color: var(--muted);
+  }
+  .score-badge {
+    padding: 3px 10px;
+    border-radius: 50px;
+    font-size: 0.72rem;
+    font-weight: 700;
+  }
+
+  .empty-msg {
+    text-align: center;
+    padding: 40px 0;
+    color: #94A3B8;
+    font-size: 0.875rem;
+  }
+  .empty-msg i { display: block; font-size: 1.8rem; margin-bottom: 10px; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+  <div>
+    <div class="page-header-label">Entreprise</div>
+    <h1>Statistiques RH</h1>
+    <p>Vue d'ensemble de votre activité de recrutement.</p>
+  </div>
+</div>
+
+<div class="stats-grid">
+
+  <!-- Distribution des scores -->
+  <div class="stat-card">
+    <div class="stat-card-title"><i class="fa-solid fa-chart-bar" style="margin-right:6px;"></i>Distribution des scores IA</div>
+
+    {% if distribution %}
+      {% set total = distribution | sum(attribute='nb') %}
+      {% for d in distribution %}
+        {% if 'Excellent' in d.tranche %}
+          {% set color = '#10B981' %}
+        {% elif 'Bon' in d.tranche %}
+          {% set color = '#1D4535' %}
+        {% elif 'Partiel' in d.tranche %}
+          {% set color = '#F59E0B' %}
+        {% else %}
+          {% set color = '#EF4444' %}
+        {% endif %}
+        {% set pct = ((d.nb / total) * 100) | round(0) | int if total > 0 else 0 %}
+        <div class="score-row">
+          <span class="score-label">{{ d.tranche }}</span>
+          <div class="score-bar-track">
+            <div class="score-bar-fill" style="width:{{ pct }}%;background:{{ color }};"></div>
+          </div>
+          <span class="score-count">{{ d.nb }}</span>
+        </div>
+      {% endfor %}
+      <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border);font-size:0.78rem;color:var(--muted);">
+        Total : <strong style="color:var(--text);">{{ total }} candidature{{ 's' if total != 1 else '' }}</strong>
+      </div>
+    {% else %}
+      <div class="empty-msg">
+        <i class="fa-solid fa-chart-bar"></i>
+        Pas encore de données
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Top offres -->
+  <div class="stat-card">
+    <div class="stat-card-title"><i class="fa-solid fa-trophy" style="margin-right:6px;"></i>Top offres par candidatures</div>
+
+    {% if offres_top %}
+      {% for o in offres_top %}
+        {% if o.score_moy and o.score_moy >= 75 %}
+          {% set sc = '#D1FAE5' %} {% set st = '#065F46' %}
+        {% elif o.score_moy and o.score_moy >= 60 %}
+          {% set sc = '#EEF4F1' %} {% set st = '#1D4535' %}
+        {% elif o.score_moy and o.score_moy >= 40 %}
+          {% set sc = '#FEF3C7' %} {% set st = '#92400E' %}
+        {% else %}
+          {% set sc = '#F1F5F9' %} {% set st = '#475569' %}
+        {% endif %}
+        <div class="offre-row">
+          <span class="offre-titre" title="{{ o.titre }}">{{ o.titre }}</span>
+          <div class="offre-meta">
+            <span class="offre-nb">{{ o.nb }} candidature{{ 's' if o.nb != 1 else '' }}</span>
+            {% if o.score_moy %}
+              <span class="score-badge" style="background:{{ sc }};color:{{ st }};">
+                {{ o.score_moy }}/100
+              </span>
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty-msg">
+        <i class="fa-solid fa-trophy"></i>
+        Pas encore de données
+      </div>
+    {% endif %}
+  </div>
+
+</div>
+
+{% endblock %}

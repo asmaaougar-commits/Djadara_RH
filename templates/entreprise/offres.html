@@ -1,0 +1,459 @@
+{% extends "entreprise/base.html" %}
+{% block title %}Offres d'emploi — Yassir RH{% endblock %}
+
+{% block head %}
+<style>
+/* ── Modal ── */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(15,23,42,0.45);
+  backdrop-filter: blur(2px);
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+
+.modal {
+  background: #fff;
+  border-radius: 20px;
+  padding: 32px 36px;
+  width: 100%;
+  max-width: 660px;
+  max-height: 92vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.18);
+  animation: slideUp 0.22s ease;
+}
+@keyframes slideUp {
+  from { transform: translateY(18px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+.modal-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.4rem;
+  color: var(--text);
+}
+.modal-close {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  border: none;
+  background: #F1F5F9;
+  color: var(--muted);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem;
+  transition: background 0.15s;
+}
+.modal-close:hover { background: #E2E8F0; }
+
+/* ── Champs ── */
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field label {
+  font-size: 0.72rem; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted);
+}
+.field input, .field textarea, .field select {
+  padding: 11px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.875rem;
+  color: var(--text);
+  background: #FAFAFA;
+  outline: none;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+  width: 100%;
+}
+.field input:focus, .field textarea:focus, .field select:focus {
+  border-color: var(--green); background: #fff;
+  box-shadow: 0 0 0 3px rgba(29,69,53,0.08);
+}
+.field textarea { min-height: 100px; resize: vertical; line-height: 1.6; }
+.form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+/* ── Tags compétences ── */
+.tags-input-wrapper {
+  display: flex; gap: 8px;
+}
+.tags-input-wrapper input { flex: 1; }
+.tags-container {
+  display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px;
+}
+.tag {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 10px; border-radius: 50px;
+  background: #E8F2EC; color: var(--green);
+  font-size: 0.78rem; font-weight: 600;
+}
+.tag button {
+  background: none; border: none; cursor: pointer;
+  color: var(--green); font-size: 0.85rem; padding: 0; line-height: 1;
+  opacity: 0.6;
+}
+.tag button:hover { opacity: 1; }
+
+/* ── Cartes offres ── */
+.offre-card {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  transition: box-shadow 0.15s, border-color 0.15s;
+  box-shadow: var(--shadow);
+}
+.offre-card:hover {
+  box-shadow: 0 4px 20px rgba(0,0,0,0.09);
+  border-color: #C8D9CE;
+}
+.offre-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 10px; border-radius: 50px;
+  font-size: 0.72rem; font-weight: 700;
+  letter-spacing: 0.04em;
+}
+.badge-active  { background: #D1FAE5; color: #065F46; }
+.badge-fermee  { background: #FEE2E2; color: #991B1B; }
+.badge-draft   { background: #F1F5F9; color: #475569; }
+
+.offre-actions { display: flex; gap: 6px; flex-shrink: 0; align-items: flex-start; }
+.btn-icon {
+  width: 34px; height: 34px;
+  border-radius: 8px; border: 1px solid var(--border);
+  background: #fff; color: var(--muted);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; text-decoration: none;
+  font-size: 0.82rem; transition: all 0.15s;
+}
+.btn-icon:hover { background: #F0F7F3; border-color: var(--green); color: var(--green); }
+.btn-icon.danger:hover { background: #FEE2E2; border-color: #FCA5A5; color: #DC2626; }
+
+/* ── Bouton matching ── */
+.btn-matching {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 8px;
+  border: 1.5px solid #1D4535;
+  background: #fff;
+  color: var(--green);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.btn-matching:hover {
+  background: var(--green);
+  color: #fff;
+}
+.btn-matching .matching-count {
+  background: #E8F2EC;
+  color: var(--green);
+  border-radius: 50px;
+  padding: 1px 7px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  transition: all 0.15s;
+}
+.btn-matching:hover .matching-count {
+  background: rgba(255,255,255,0.25);
+  color: #fff;
+}
+
+/* ── Séparateur actions ── */
+.actions-separator {
+  width: 1px;
+  height: 22px;
+  background: var(--border);
+  align-self: center;
+}
+
+/* ── Empty state ── */
+.empty-state {
+  text-align: center;
+  padding: 72px 20px;
+  color: #94A3B8;
+}
+.empty-state i { font-size: 2.5rem; margin-bottom: 14px; display: block; }
+.empty-state p { font-size: 0.9rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ── Page header ── -->
+<div class="page-header">
+  <div>
+    <div class="page-header-label">Entreprise</div>
+    <h1>Offres d'emploi</h1>
+    <p>{{ offres|length if offres else 0 }} offre{{ 's' if offres and offres|length != 1 else '' }}</p>
+  </div>
+  <button class="btn btn-primary" onclick="openModal()">
+    <i class="fa-solid fa-plus"></i> Publier une offre
+  </button>
+</div>
+
+<!-- ── Flash messages ── -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div class="flash flash-{{ category }}">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
+<!-- ── Liste des offres ── -->
+{% if offres %}
+  <div style="display:flex;flex-direction:column;gap:12px;">
+    {% for o in offres %}
+    <div class="offre-card">
+      <div style="flex:1;min-width:0;">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px;">
+          <span style="font-weight:700;font-size:1rem;color:var(--text);">{{ o.titre }}</span>
+          <span class="offre-badge {% if o.statut == 'active' %}badge-active{% elif o.statut == 'fermée' %}badge-fermee{% else %}badge-draft{% endif %}">
+            {% if o.statut == 'active' %}● Active{% elif o.statut == 'fermée' %}● Fermée{% else %}⚙ Brouillon{% endif %}
+          </span>
+        </div>
+        <div style="display:flex;gap:14px;flex-wrap:wrap;font-size:0.82rem;color:var(--muted);">
+          {% if o.type_contrat %}
+            <span><i class="fa-solid fa-file-contract" style="margin-right:4px;"></i>{{ o.type_contrat }}</span>
+          {% endif %}
+          {% if o.localisation %}
+            <span><i class="fa-solid fa-location-dot" style="margin-right:4px;"></i>{{ o.localisation }}</span>
+          {% endif %}
+          {% if o.experience_min %}
+            <span><i class="fa-solid fa-clock" style="margin-right:4px;"></i>{{ o.experience_min }} an{{ 's' if o.experience_min > 1 else '' }} min.</span>
+          {% endif %}
+          <span><i class="fa-solid fa-users" style="margin-right:4px;"></i>{{ o.nb_candidatures if o.nb_candidatures else 0 }} candidature{{ 's' if o.nb_candidatures != 1 else '' }}</span>
+        </div>
+        {% if o.competences %}
+        <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:5px;">
+          {% for comp in o.competences.split(',')[:5] %}
+            <span style="padding:2px 9px;border-radius:50px;background:#F0F7F3;color:var(--green);font-size:0.72rem;font-weight:600;">{{ comp.strip() }}</span>
+          {% endfor %}
+          {% if o.competences.split(',')|length > 5 %}
+            <span style="padding:2px 9px;border-radius:50px;background:#F1F5F9;color:var(--muted);font-size:0.72rem;">+{{ o.competences.split(',')|length - 5 }}</span>
+          {% endif %}
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Actions -->
+      <div class="offre-actions">
+
+        <!-- Bouton Matching IA -->
+        {% if o.nb_candidatures and o.nb_candidatures > 0 %}
+          <a href="/entreprise/matching/{{ o.id }}" class="btn-matching" title="Lancer / recalculer le matching IA">
+            <i class="fa-solid fa-brain"></i>
+            Matching IA
+            <span class="matching-count">{{ o.nb_candidatures }}</span>
+          </a>
+          <a href="/entreprise/resultats/{{ o.id }}" class="btn-icon" title="Résultats détaillés">
+            <i class="fa-solid fa-ranking-star"></i>
+          </a>
+        {% else %}
+          <span class="btn-matching" style="opacity:0.4;cursor:default;pointer-events:none;" title="Aucune candidature pour cette offre">
+            <i class="fa-solid fa-brain"></i>
+            Matching IA
+            <span class="matching-count">0</span>
+          </span>
+        {% endif %}
+
+        <div class="actions-separator"></div>
+
+        <a href="/entreprise/offres/{{ o.id }}/edit" class="btn-icon" title="Modifier">
+          <i class="fa-solid fa-pen-to-square"></i>
+        </a>
+        <form method="POST" action="/entreprise/offres/{{ o.id }}/supprimer"
+              onsubmit="return confirm('Supprimer définitivement cette offre ?');" style="margin:0;">
+          <button type="submit" class="btn-icon danger" title="Supprimer">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        </form>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="card">
+    <div class="empty-state">
+      <i class="fa-solid fa-briefcase"></i>
+      <p>Aucune offre publiée pour le moment</p>
+      <button class="btn btn-primary" style="margin-top:16px;" onclick="openModal()">
+        <i class="fa-solid fa-plus"></i> Publier votre première offre
+      </button>
+    </div>
+  </div>
+{% endif %}
+
+<!-- ══════════════════════════════════════
+     MODAL — Publier une offre
+══════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-overlay" onclick="handleOverlayClick(event)">
+  <div class="modal">
+
+    <div class="modal-header">
+      <span class="modal-title">Publier une offre</span>
+      <button class="modal-close" onclick="closeModal()">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <form method="POST" action="/entreprise/offres">
+      <div style="display:flex;flex-direction:column;gap:16px;">
+
+        <div class="field">
+          <label>Titre du poste <span style="color:#EF4444;">*</span></label>
+          <input type="text" name="titre" placeholder="Ex : Développeur Full-Stack, Chef de projet..." required>
+        </div>
+
+        <div class="field">
+          <label>Description</label>
+          <textarea name="description" placeholder="Décrivez le poste, les missions, le contexte..."></textarea>
+        </div>
+
+        <div class="form-grid-2">
+          <div class="field">
+            <label>Niveau requis</label>
+            <select name="niveau_etude">
+              <option value="">Non précisé</option>
+              <option value="Bac">Bac</option>
+              <option value="Bac+2">Bac+2</option>
+              <option value="Bac+3">Bac+3</option>
+              <option value="Bac+5">Bac+5 (Master)</option>
+              <option value="Ingénieur">Ingénieur</option>
+              <option value="Doctorat">Doctorat</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Type de contrat</label>
+            <select name="type_contrat">
+              <option value="CDI">CDI</option>
+              <option value="CDD">CDD</option>
+              <option value="Stage">Stage</option>
+              <option value="Freelance">Freelance</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-grid-2">
+          <div class="field">
+            <label>Lieu</label>
+            <input type="text" name="localisation" placeholder="Alger, Oran, Télétravail...">
+          </div>
+          <div class="field">
+            <label>Expérience min (années)</label>
+            <input type="number" name="experience_min" min="0" value="0">
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Compétences requises <span style="color:#EF4444;">*</span></label>
+          <div class="tags-input-wrapper">
+            <input type="text" id="comp-input"
+                   placeholder="Python, SQL... (appuyez Entrée ou cliquez Ajouter)"
+                   onkeydown="handleTagKey(event)">
+            <button type="button" class="btn btn-ghost" style="white-space:nowrap;border-radius:10px;"
+                    onclick="addTag()">Ajouter</button>
+          </div>
+          <div class="tags-container" id="tags-container"></div>
+          <input type="hidden" name="competences" id="competences-hidden">
+        </div>
+
+        <div class="form-grid-2">
+          <div class="field">
+            <label>Salaire</label>
+            <input type="text" name="salaire" placeholder="Ex : 80 000 – 100 000 DA / mois">
+          </div>
+          <div class="field">
+            <label>Langues requises</label>
+            <input type="text" name="langues_requises" placeholder="Français, Anglais...">
+          </div>
+        </div>
+
+        <!-- Boutons -->
+        <div style="display:flex;gap:10px;justify-content:flex-end;padding-top:8px;border-top:1px solid var(--border);">
+          <button type="button" class="btn btn-ghost" onclick="closeModal()">Annuler</button>
+          <button type="submit" class="btn btn-primary" style="padding:12px 28px;">
+            <i class="fa-solid fa-paper-plane"></i> Publier
+          </button>
+        </div>
+
+      </div>
+    </form>
+
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+// ── Modal ──
+function openModal() {
+  document.getElementById('modal-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+function handleOverlayClick(e) {
+  if (e.target === document.getElementById('modal-overlay')) closeModal();
+}
+
+// ── Tags compétences ──
+let tags = [];
+
+function addTag() {
+  const input = document.getElementById('comp-input');
+  const vals = input.value.split(',').map(v => v.trim()).filter(Boolean);
+  vals.forEach(v => {
+    if (v && !tags.includes(v)) tags.push(v);
+  });
+  input.value = '';
+  renderTags();
+}
+
+function removeTag(idx) {
+  tags.splice(idx, 1);
+  renderTags();
+}
+
+function renderTags() {
+  const container = document.getElementById('tags-container');
+  container.innerHTML = tags.map((t, i) =>
+    `<span class="tag">${t}<button type="button" onclick="removeTag(${i})">×</button></span>`
+  ).join('');
+  document.getElementById('competences-hidden').value = tags.join(', ');
+}
+
+function handleTagKey(e) {
+  if (e.key === 'Enter') { e.preventDefault(); addTag(); }
+}
+
+// ── Ouvrir le modal auto si erreur flash ──
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% for category, message in messages %}
+    {% if category == 'danger' %}
+      document.addEventListener('DOMContentLoaded', () => openModal());
+    {% endif %}
+  {% endfor %}
+{% endwith %} 
+</script>
+{% endblock %}

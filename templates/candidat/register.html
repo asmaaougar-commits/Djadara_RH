@@ -1,0 +1,41 @@
+{% extends "./base_public.html" %}
+{% block title %}Inscription Candidat — Yassir RH{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Créer un compte candidat</h1>
+    <p>Inscrivez-vous pour postuler et déposer votre CV.</p>
+  </div>
+</div>
+
+<div class="card" style="max-width:520px;margin:0 auto;">
+  <form method="POST">
+    <div class="field">
+      <label>Nom <span>*</span></label>
+      <input type="text" name="nom" required>
+    </div>
+    <div class="field">
+      <label>Prénom <span>*</span></label>
+      <input type="text" name="prenom" required>
+    </div>
+    <div class="field">
+      <label>Email <span>*</span></label>
+      <input type="email" name="email" required>
+    </div>
+    <div class="field">
+      <label>Téléphone</label>
+      <input type="text" name="telephone">
+    </div>
+    <div class="field">
+      <label>Mot de passe <span>*</span></label>
+      <input type="password" name="password" required>
+    </div>
+
+    <button type="submit" class="btn btn-primary" style="margin-top:14px;">
+      S’inscrire
+    </button>
+  </form>
+</div>
+{% endblock %}
+

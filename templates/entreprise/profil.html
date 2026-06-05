@@ -1,0 +1,230 @@
+{% extends "entreprise/base.html" %}
+{% block title %}Profil Entreprise — Yassir RH{% endblock %}
+
+{% block head %}
+<style>
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.field label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.field input,
+.field textarea {
+  padding: 11px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.875rem;
+  color: var(--text);
+  background: #FAFAFA;
+  outline: none;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+  width: 100%;
+}
+.field input:focus,
+.field textarea:focus {
+  border-color: var(--green);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(29,69,53,0.08);
+}
+.field input:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  background: #F1F5F9;
+}
+.form-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.section-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 22px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+.section-head-icon {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  background: #FFF7ED;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.section-head-icon i { color: var(--orange); font-size: 0.9rem; }
+.section-head-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.05rem;
+  color: var(--text);
+}
+
+.avatar-bloc {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  background: #F8FAFB;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin-bottom: 20px;
+}
+.avatar-circle {
+  width: 56px; height: 56px;
+  border-radius: 14px;
+  background: var(--green);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Playfair Display', serif;
+  font-size: 1.5rem; font-weight: 700; color: #fff;
+  flex-shrink: 0;
+}
+.badge-verified {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 10px; border-radius: 50px;
+  font-size: 0.72rem; font-weight: 600;
+  background: #D1FAE5; color: #065F46;
+}
+.badge-pending { background: #FEF3C7; color: #92400E; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+  <div>
+    <div class="page-header-label">Entreprise</div>
+    <h1>Profil entreprise</h1>
+    <p>Informations de votre organisation</p>
+  </div>
+  <button type="button" class="btn btn-primary"
+          onclick="document.getElementById('profil-form').requestSubmit();">
+    <i class="fa-solid fa-floppy-disk"></i> Sauvegarder
+  </button>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div class="flash flash-{{ category }}">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
+<!-- Avatar recap -->
+<div class="avatar-bloc">
+  <div class="avatar-circle">
+    {{ entreprise.nom[0]|upper if entreprise and entreprise.nom else '?' }}
+  </div>
+  <div>
+    <strong style="font-size:1rem;color:var(--text);">
+      {{ entreprise.nom if entreprise and entreprise.nom else 'Nom non renseigné' }}
+    </strong>
+    <p style="font-size:0.8rem;color:var(--muted);margin-top:2px;">
+      {{ entreprise.secteur if entreprise and entreprise.secteur else 'Secteur non renseigné' }}
+    </p>
+  </div>
+  <div style="margin-left:auto;">
+    {% if entreprise and entreprise.is_verified %}
+      <span class="badge-verified"><i class="fa-solid fa-circle-check"></i> Compte vérifié</span>
+    {% else %}
+      <span class="badge-verified badge-pending"><i class="fa-solid fa-clock"></i> En attente</span>
+    {% endif %}
+  </div>
+</div>
+
+<form id="profil-form" method="POST" action="/entreprise/profil">
+  <div style="display:flex;flex-direction:column;gap:16px;">
+
+    <!-- CARD : Informations générales -->
+    <div class="card" style="padding:24px 28px;">
+      <div class="section-head">
+        <div class="section-head-icon"><i class="fa-solid fa-building"></i></div>
+        <span class="section-head-title">Informations générales</span>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:16px;">
+
+        <div class="field">
+          <label>Nom de l'entreprise <span style="color:#EF4444;">*</span></label>
+          <input type="text" name="nom"
+                 value="{{ entreprise.nom if entreprise and entreprise.nom else '' }}"
+                 required>
+        </div>
+
+        <div class="field">
+          <label>Secteur d'activité</label>
+          <input type="text" name="secteur"
+                 value="{{ entreprise.secteur if entreprise and entreprise.secteur else '' }}"
+                 placeholder="IT, Finance, Santé...">
+        </div>
+
+        <div class="field">
+          <label>Adresse</label>
+          <input type="text" name="adresse"
+                 value="{{ entreprise.adresse if entreprise and entreprise.adresse else '' }}"
+                 placeholder="Adresse du siège">
+        </div>
+
+        <div class="form-grid-2">
+          <div class="field">
+            <label>Email (non modifiable)</label>
+            <input type="email"
+                   value="{{ entreprise.email if entreprise else '' }}"
+                   disabled>
+          </div>
+          <div class="field">
+            <label>Téléphone</label>
+            <input type="text" name="telephone"
+                   value="{{ entreprise.telephone if entreprise and entreprise.telephone else '' }}"
+                   placeholder="+213 ...">
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- CARD : Sécurité -->
+    <div class="card" style="padding:24px 28px;">
+      <div class="section-head">
+        <div class="section-head-icon" style="background:#FEF2F2;">
+          <i class="fa-solid fa-lock" style="color:#EF4444;"></i>
+        </div>
+        <span class="section-head-title">Sécurité</span>
+      </div>
+      <p style="font-size:0.85rem;color:var(--muted);margin-bottom:18px;">
+        Laissez ces champs vides si vous ne souhaitez pas changer votre mot de passe.
+      </p>
+      <div class="form-grid-2">
+        <div class="field">
+          <label>Nouveau mot de passe</label>
+          <input type="password" name="new_password"
+                 placeholder="••••••••" autocomplete="new-password">
+        </div>
+        <div class="field">
+          <label>Confirmer le mot de passe</label>
+          <input type="password" name="confirm_password"
+                 placeholder="••••••••" autocomplete="new-password">
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div style="display:flex;gap:10px;justify-content:flex-end;">
+      <a href="/entreprise/dashboard" class="btn btn-ghost">Annuler</a>
+      <button type="submit" class="btn btn-primary" style="padding:12px 28px;">
+        <i class="fa-solid fa-floppy-disk"></i> Enregistrer
+      </button>
+    </div>
+
+  </div>
+</form>
+
+{% endblock %}

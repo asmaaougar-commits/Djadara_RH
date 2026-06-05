@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "candidat/base.html" %}
 {% block title %}Upload CV — CV Assistant{% endblock %}
 {% block head %}
 <style>
@@ -109,22 +109,14 @@
     </svg>
   </div>
 
-  <h1>Analyser un CV</h1>
-  <p>Déposez un fichier CV et notre IA l'analysera en détail</p>
+  
+  <p>Déposez un fichier CV </p>
 
   <div class="upload-card">
-    <form action="/match" method="POST" enctype="multipart/form-data" id="uploadForm">
+    <form action="{{url_for('candidat_upload_cv')}}" method="POST" enctype="multipart/form-data" id="uploadForm">
 
-      <!-- Sélection de l'offre -->
-      <div class="field" style="margin-bottom: 1.5rem;">
-        <label>Offre d'emploi cible (optionnel)</label>
-        <select name="offre_id">
-          <option value="">— Analyse sans offre spécifique —</option>
-          {% for o in offres %}
-            <option value="{{ o.id }}">{{ o.titre }}</option>
-          {% endfor %}
-        </select>
-      </div>
+      
+      
 
       <!-- Drop Zone -->
       <input type="file" name="cv_files" id="cvFiles" accept=".pdf,.doc,.docx" multiple style="display:none;" onchange="handleFiles(this.files)">
@@ -142,13 +134,10 @@
       </div>
 
       <div class="file-list" id="fileList"></div>
-
-      <button type="submit" class="submit-btn" id="submitBtn" onclick="showLoading()">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <polygon points="13,2 3,14 12,14 11,22 21,10 12,10 13,2"/>
-        </svg>
-        Analyser le CV
-      </button>
+       <button type="submit" class="submit-btn" id="submitBtn" onclick="showLoading()">
+         <i class="fa-solid fa-floppy-disk"></i> Enregistrer mon CV
+       </button>
+    
     </form>
   </div>
 </div>

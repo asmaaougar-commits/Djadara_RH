@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Yassir RH{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style_condidat.css') }}">
+  {% block head %}{% endblock %}
+</head>
+  <body>
+   <div id="chatbot-btn" onclick="toggleChat()">
+    🤖
+ </div>
+
+ <div id="chatbot-window">
+    <div id="chat-header">
+        Assistant Candidat
+    </div>
+
+    <div id="chat-messages"></div>
+
+    <div id="chat-input">
+        <input type="text" id="msg" placeholder="Posez une question...">
+        <button onclick="sendMessage()">➤</button>
+    </div>
+ </div>
+
+
+
+  <div class="app-layout">
+    <aside class="sidebar">
+      <a href="/" class="sidebar-brand">
+        <div class="brand-logo-box">Y</div>
+        <span class="brand-name">Yassir RH</span>
+      </a>
+      <ul class="sidebar-menu">
+        <li>
+          <a href="{{ url_for('candidat_dashboard') }}"
+             class="sidebar-link {% if request.path == '/candidat/dashboard' %}active{% endif %}">
+            <i class="fa-solid fa-chart-pie"></i>
+            Tableau de bord
+          </a>
+        </li>
+        <li>
+          <a href="{{ url_for('candidat_offres') }}"
+             class="sidebar-link {% if request.path == '/candidat/offres' %}active{% endif %}">
+            <i class="fa-solid fa-briefcase"></i>
+            Offres d'emploi
+          </a>
+        </li>
+        <li>
+          <a href="{{ url_for('candidat_candidatures') }}"
+             class="sidebar-link {% if request.path == '/candidat/candidatures' %}active{% endif %}">
+            <i class="fa-solid fa-file-lines"></i>
+            Mes candidatures
+          </a>
+        </li>
+        <li>
+          <a href="{{ url_for('candidat_notifications') }}"
+             class="sidebar-link {% if request.path == '/candidat/notifications' %}active{% endif %}">
+            <i class="fa-solid fa-bell"></i>
+            Notifications
+          </a>
+        </li>
+        <li>
+          <a href="{{ url_for('candidat_upload_cv') }}"
+             class="sidebar-link {% if request.path == '/candidat/upload-cv' %}active{% endif %}">
+            <i class="fa-solid fa-upload"></i>
+            Deposer mon CV
+          </a>
+        </li>
+        
+        <li>
+          <a href="{{ url_for('candidat_profil') }}"
+             class="sidebar-link {% if request.path == '/candidat/profil' %}active{% endif %}">
+            <i class="fa-solid fa-user"></i>
+            Mon profil
+          </a>
+
+        </li>
+      </ul>
+      <div class="sidebar-footer">
+        <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">
+          <i class="fa-solid fa-moon" id="themeIcon"></i>
+          <span id="themeLabel">Mode sombre</span>
+        </button>
+        <a href="/logout" class="sidebar-link" style="color: #EF4444; margin-top: 4px;">
+          <i class="fa-solid fa-arrow-right-from-bracket" style="color: #EF4444;"></i>
+          Deconnexion
+        </a>
+      </div>
+    </aside>
+    <main class="main-content">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, msg in messages %}
+            <div class="flash {{ 'success' if category == 'success' else 'error' if category == 'danger' else '' }}">
+              {{ msg }}
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+  <script>
+    (function () {
+      const saved = localStorage.getItem('theme');
+      if (saved === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+    })();
+    function toggleTheme() {
+      const html  = document.documentElement;
+      const icon  = document.getElementById('themeIcon');
+      const label = document.getElementById('themeLabel');
+      const isDark = html.getAttribute('data-theme') === 'dark';
+      if (isDark) {
+        html.removeAttribute('data-theme');
+        localStorage.setItem('theme', 'light');
+        icon.className  = 'fa-solid fa-moon';
+        label.textContent = 'Mode sombre';
+      } else {
+        html.setAttribute('data-theme', 'dark');
+        localStorage.setItem('theme', 'dark');
+        icon.className  = 'fa-solid fa-sun';
+        label.textContent = 'Mode clair';
+      }
+    }
+    document.addEventListener('DOMContentLoaded', function () {
+      const icon  = document.getElementById('themeIcon');
+      const label = document.getElementById('themeLabel');
+      if (document.documentElement.getAttribute('data-theme') === 'dark') {
+        icon.className  = 'fa-solid fa-sun';
+        label.textContent = 'Mode clair';
+      }
+    });
+
+
+  
+   
+
+
+
+
+  </script>
+</body>
+</html>

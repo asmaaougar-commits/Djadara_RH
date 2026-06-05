@@ -1,0 +1,25 @@
+{% extends "candidat/base.html" %}
+{% block title %}Notifications — Yassir RH{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Notifications</h1>
+    <p>Messages reçus</p>
+  </div>
+</div>
+
+{% if notifications %}
+  <div style="display:flex;flex-direction:column;gap:12px;max-width:980px;margin:0 auto;">
+    {% for n in notifications %}
+      <div style="background:rgba(255,255,255,0.95);border:1px solid rgba(226,232,240,1);border-radius:14px;padding:16px 18px;">
+        <div style="font-weight:800;color:#0F172A;">{{ n.titre }}</div>
+        <div style="color:#64748B;font-size:0.9rem;margin-top:4px;">{{ n.message }}</div>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="card"><div style="text-align:center;padding:48px 16px;color:#64748B;">Aucune notification.</div></div>
+{% endif %}
+{% endblock %}
+

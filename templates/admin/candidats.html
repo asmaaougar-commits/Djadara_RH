@@ -1,0 +1,86 @@
+{% extends "admin/base.html" %}
+{% block title %}Candidats — Djadara RH Admin{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <div class="eyebrow">Gestion</div>
+    <h1>Candidats</h1>
+    <p>{{ candidats|length }} candidat{{ 's' if candidats|length != 1 else '' }} enregistré{{ 's' if candidats|length != 1 else '' }}</p>
+  </div>
+</div>
+
+<div style="max-width:1000px;">
+  {% if candidats %}
+  <div class="card" style="overflow:hidden;">
+    <table style="width:100%;border-collapse:collapse;font-size:0.875rem;">
+      <thead>
+        <tr style="border-bottom:1px solid var(--border);background:var(--paper);">
+          <th style="padding:12px 16px;text-align:left;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);">Candidat</th>
+          <th style="padding:12px 16px;text-align:left;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);">Email</th>
+          <th style="padding:12px 16px;text-align:center;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);">Candidatures</th>
+          <th style="padding:12px 16px;text-align:center;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);">Statut</th>
+          <th style="padding:12px 16px;text-align:center;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in candidats %}
+        <tr style="border-bottom:1px solid var(--border);transition:background 0.15s;" onmouseover="this.style.background='var(--paper)'" onmouseout="this.style.background='transparent'">
+          <td style="padding:14px 16px;">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div style="width:36px;height:36px;border-radius:50%;background:var(--ink);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--accent);flex-shrink:0;">
+                {{ c.prenom[0]|upper if c.prenom else 'C' }}
+              </div>
+              <div>
+                <div style="font-weight:600;color:var(--ink);">{{ c.prenom }} {{ c.nom }}</div>
+                <div style="font-size:11px;color:var(--muted);">{{ c.telephone or '—' }}</div>
+              </div>
+            </div>
+          </td>
+          <td style="padding:14px 16px;color:var(--muted);">{{ c.email }}</td>
+          <td style="padding:14px 16px;text-align:center;">
+            <span style="font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;color:var(--ink);">{{ c.nb_candidatures }}</span>
+          </td>
+          <td style="padding:14px 16px;text-align:center;">
+            {% if c.is_active %}
+              <span style="display:inline-flex;align-items:center;gap:5px;background:#D1FAE5;color:#065F46;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;">
+                <span style="width:6px;height:6px;background:#22C55E;border-radius:50%;"></span> Actif
+              </span>
+            {% else %}
+              <span style="display:inline-flex;align-items:center;gap:5px;background:#FEE2E2;color:#B91C1C;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;">
+                <span style="width:6px;height:6px;background:#EF4444;border-radius:50%;"></span> Désactivé
+              </span>
+            {% endif %}
+          </td>
+          <td style="padding:14px 16px;text-align:center;">
+            <div style="display:flex;align-items:center;justify-content:center;gap:8px;">
+              <a href="{{ url_for('admin_voir_candidat', candidat_id=c.id) }}"
+                 style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:8px;border:1px solid var(--border);font-size:12px;font-weight:600;color:var(--ink);text-decoration:none;background:var(--white);transition:all 0.18s;"
+                 onmouseover="this.style.background='var(--paper)'"
+                 onmouseout="this.style.background='var(--white)'">
+                <i class="fa-regular fa-eye"></i> Voir
+              </a>
+              <form method="POST" action="{{ url_for('admin_toggle_candidat', candidat_id=c.id) }}" style="margin:0;">
+                <button type="submit"
+                  style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:8px;border:1px solid var(--border);font-size:12px;font-weight:600;cursor:pointer;transition:all 0.18s;background:var(--white);color:{% if c.is_active %}#B91C1C{% else %}#065F46{% endif %};"
+                  onmouseover="this.style.background='var(--paper)'"
+                  onmouseout="this.style.background='var(--white)'">
+                  <i class="fa-solid fa-{% if c.is_active %}ban{% else %}check{% endif %}"></i>
+                  {% if c.is_active %}Désactiver{% else %}Activer{% endif %}
+                </button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="card" style="padding:48px;text-align:center;color:var(--muted);">
+    <i class="fa-regular fa-user" style="font-size:2rem;margin-bottom:12px;display:block;"></i>
+    Aucun candidat enregistré.
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

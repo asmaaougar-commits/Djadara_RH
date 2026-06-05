@@ -1,0 +1,45 @@
+{% extends "entreprise/base_public.html" %}
+{% block title %}Inscription Entreprise — Yassir RH{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Créer un compte entreprise</h1>
+    <p>Publiez des offres et gérez vos recrutements</p>
+  </div>
+</div>
+
+<div class="card" style="max-width:560px;margin:0 auto;">
+  <form method="POST">
+    <div class="field">
+      <label>Nom de l’entreprise <span>*</span></label>
+      <input type="text" name="nom" required>
+    </div>
+    <div class="field">
+      <label>Secteur</label>
+      <input type="text" name="secteur">
+    </div>
+    <div class="field">
+      <label>Adresse</label>
+      <input type="text" name="adresse">
+    </div>
+    <div class="field">
+      <label>Email <span>*</span></label>
+      <input type="email" name="email" required>
+    </div>
+    <div class="field">
+      <label>Téléphone</label>
+      <input type="text" name="telephone">
+    </div>
+    <div class="field">
+      <label>Mot de passe <span>*</span></label>
+      <input type="password" name="password" required>
+    </div>
+
+    <button type="submit" class="btn btn-primary" style="margin-top:14px;">
+      Créer le compte
+    </button>
+  </form>
+</div>
+{% endblock %}
+

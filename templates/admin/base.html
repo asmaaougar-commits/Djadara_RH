@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Admin — Djadara RH{% endblock %}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    :root {
+      --sidebar-w: 250px;
+      --ink:    #0D1117;
+      --paper:  #F7F6F2;
+      --accent: #C8F04B;
+      --muted:  #6B7280;
+      --border: #E2E0D8;
+      --white:  #FFFFFF;
+      --red:    #DC2626;
+      --red-l:  #FEE2E2;
+      --radius: 14px;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--paper);
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+      width: var(--sidebar-w);
+      min-height: 100vh;
+      background: var(--ink);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0; left: 0;
+      z-index: 100;
+    }
+    .sidebar-header {
+      padding: 24px 20px 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .brand {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 16px;
+    }
+    .brand-logo {
+      width: 34px; height: 34px;
+      border-radius: 8px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .brand-logo img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .brand-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 13px; color: var(--white); }
+    .brand-sub  { font-size: 9px; color: rgba(255,255,255,0.35); letter-spacing: 0.08em; text-transform: uppercase; }
+    .admin-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(200,240,75,0.12);
+      border: 1px solid rgba(200,240,75,0.25);
+      border-radius: 20px;
+      padding: 4px 10px;
+      font-size: 10px; font-weight: 700;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    .sidebar-nav {
+      flex: 1;
+      padding: 16px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .nav-label {
+      font-size: 9px; font-weight: 700;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: rgba(255,255,255,0.25);
+      padding: 10px 12px 4px;
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: 11px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      text-decoration: none;
+      color: rgba(255,255,255,0.5);
+      font-size: 0.875rem; font-weight: 500;
+      transition: all 0.18s;
+      position: relative;
+    }
+    .nav-item i { width: 16px; text-align: center; font-size: 0.875rem; }
+    .nav-item:hover { background: rgba(255,255,255,0.06); color: var(--white); }
+    .nav-item.active {
+      background: rgba(200,240,75,0.12);
+      color: var(--accent);
+      font-weight: 600;
+    }
+    .nav-item.active::after {
+      content: '';
+      position: absolute; right: 0; top: 50%;
+      transform: translateY(-50%);
+      width: 3px; height: 18px;
+      background: var(--accent);
+      border-radius: 2px 0 0 2px;
+    }
+
+    .sidebar-footer {
+      padding: 16px 12px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+    }
+    .btn-logout {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      text-decoration: none;
+      color: rgba(255,255,255,0.4);
+      font-size: 0.875rem; font-weight: 500;
+      transition: all 0.18s;
+      width: 100%;
+    }
+    .btn-logout:hover { background: rgba(220,38,38,0.12); color: #FCA5A5; }
+
+    /* MAIN */
+    .main {
+      margin-left: var(--sidebar-w);
+      flex: 1;
+      min-height: 100vh;
+      padding: 32px 36px;
+    }
+    .page-header {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      margin-bottom: 28px;
+      max-width: 1000px;
+    }
+    .page-header .eyebrow {
+      font-size: 0.7rem; font-weight: 700;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 5px;
+    }
+    .page-header h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: 2rem; font-weight: 800;
+      color: var(--ink); line-height: 1.1;
+    }
+    .page-header p { color: var(--muted); font-size: 0.9rem; margin-top: 5px; }
+
+    .card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    .btn {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 9px 18px; border-radius: 10px;
+      font-size: 0.85rem; font-weight: 600;
+      text-decoration: none; border: none; cursor: pointer;
+      transition: all 0.18s;
+    }
+    .btn-primary { background: var(--ink); color: var(--white); }
+    .btn-primary:hover { background: #1e2730; }
+    .btn-accent  { background: var(--accent); color: var(--ink); }
+    .btn-accent:hover { opacity: 0.85; }
+    .btn-ghost   { background: transparent; border: 1px solid var(--border); color: var(--ink); }
+    .btn-ghost:hover { background: var(--paper); }
+
+    .flash-container { max-width: 1000px; margin-bottom: 20px; }
+    .alert {
+      padding: 12px 16px; border-radius: 10px;
+      font-size: 0.875rem; font-weight: 500;
+      margin-bottom: 10px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .alert-success { background:#D1FAE5; color:#065F46; border-left:3px solid #22C55E; }
+    .alert-danger  { background:var(--red-l); color:var(--red); border-left:3px solid var(--red); }
+    .alert-warning { background:#FEF3C7; color:#92400E; border-left:3px solid #F59E0B; }
+    .alert-info    { background:#DBEAFE; color:#1E40AF; border-left:3px solid #3B82F6; }
+
+    {% block extra_style %}{% endblock %}
+  </style>
+</head>
+<body>
+
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="brand">
+        <div class="brand-logo">
+          <img src="{{ url_for('static', filename='logo.png') }}" alt="Djadara RH">
+        </div>
+        <div>
+          <div class="brand-name">Djadara RH</div>
+          <div class="brand-sub">Recrutement Intelligent</div>
+        </div>
+      </div>
+      <div class="admin-badge">⚙ Administrateur</div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-label">Général</div>
+      <a href="{{ url_for('admin_dashboard') }}"
+         class="nav-item {% if request.endpoint == 'admin_dashboard' %}active{% endif %}">
+        <i class="fa-solid fa-table-columns"></i> Tableau de bord
+      </a>
+      <a href="{{ url_for('admin_stats') }}"
+         class="nav-item {% if request.endpoint == 'admin_stats' %}active{% endif %}">
+        <i class="fa-solid fa-chart-bar"></i> Statistiques
+      </a>
+
+      <div class="nav-label">Gestion</div>
+      <a href="{{ url_for('admin_candidats') }}"
+         class="nav-item {% if request.endpoint == 'admin_candidats' %}active{% endif %}">
+        <i class="fa-regular fa-user"></i> Candidats
+      </a>
+      <a href="{{ url_for('admin_entreprises') }}"
+         class="nav-item {% if request.endpoint == 'admin_entreprises' %}active{% endif %}">
+        <i class="fa-regular fa-building"></i> Entreprises
+      </a>
+      <a href="{{ url_for('admin_offres') }}"
+         class="nav-item {% if request.endpoint == 'admin_offres' %}active{% endif %}">
+        <i class="fa-regular fa-file-lines"></i> Offres
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <a href="{{ url_for('admin_logout') }}" class="btn-logout">
+        <i class="fa-solid fa-right-from-bracket"></i> Déconnexion
+      </a>
+    </div>
+  </aside>
+
+  <main class="main">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-container">
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </main>
+
+</body>
+</html>

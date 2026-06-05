@@ -1,0 +1,106 @@
+{% extends "admin/base.html" %}
+{% block title %}Statistiques — Djadara RH Admin{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <div class="eyebrow">Analyse</div>
+    <h1>Statistiques plateforme</h1>
+    <p>Vue d'ensemble globale de Djadara RH</p>
+  </div>
+</div>
+
+<div style="max-width:1000px;">
+
+  <!-- KPIs globaux -->
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:28px;">
+
+    <div class="card" style="padding:22px;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">Candidats</div>
+      <div style="font-family:'Syne',sans-serif;font-size:2.2rem;font-weight:800;color:var(--ink);">{{ stats.nb_candidats }}</div>
+      <div style="margin-top:8px;display:flex;align-items:center;gap:6px;">
+        <span style="background:#D1FAE5;color:#065F46;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700;">{{ stats.nb_candidats_actifs }} actifs</span>
+        <span style="color:var(--muted);font-size:12px;">{{ stats.nb_candidats - stats.nb_candidats_actifs }} désactivés</span>
+      </div>
+    </div>
+
+    <div class="card" style="padding:22px;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">Entreprises</div>
+      <div style="font-family:'Syne',sans-serif;font-size:2.2rem;font-weight:800;color:var(--ink);">{{ stats.nb_entreprises }}</div>
+      <div style="margin-top:8px;display:flex;align-items:center;gap:6px;">
+        <span style="background:#D1FAE5;color:#065F46;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700;">{{ stats.nb_entreprises_actives }} actives</span>
+        <span style="color:var(--muted);font-size:12px;">{{ stats.nb_entreprises - stats.nb_entreprises_actives }} désactivées</span>
+      </div>
+    </div>
+
+    <div class="card" style="padding:22px;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">Offres</div>
+      <div style="font-family:'Syne',sans-serif;font-size:2.2rem;font-weight:800;color:var(--ink);">{{ stats.nb_offres }}</div>
+      <div style="margin-top:8px;display:flex;align-items:center;gap:6px;">
+        <span style="background:#D1FAE5;color:#065F46;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700;">{{ stats.nb_offres_actives }} actives</span>
+        <span style="color:var(--muted);font-size:12px;">{{ stats.nb_offres - stats.nb_offres_actives }} fermées</span>
+      </div>
+    </div>
+
+    <div class="card" style="padding:22px;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">Candidatures</div>
+      <div style="font-family:'Syne',sans-serif;font-size:2.2rem;font-weight:800;color:var(--ink);">{{ stats.nb_candidatures }}</div>
+    </div>
+
+    <div class="card" style="padding:22px;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">Entretiens</div>
+      <div style="font-family:'Syne',sans-serif;font-size:2.2rem;font-weight:800;color:var(--ink);">{{ stats.nb_entretiens }}</div>
+    </div>
+
+    <div class="card" style="padding:22px;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">Score moyen IA</div>
+      <div style="font-family:'Syne',sans-serif;font-size:2.2rem;font-weight:800;color:var(--ink);">
+        {{ stats.score_moyen_global or '—' }}<span style="font-size:1rem;color:var(--muted);">/100</span>
+      </div>
+      <!-- Barre visuelle -->
+      {% if stats.score_moyen_global %}
+      <div style="margin-top:10px;background:var(--border);border-radius:20px;height:6px;overflow:hidden;">
+        <div style="height:100%;width:{{ stats.score_moyen_global }}%;background:var(--accent);border-radius:20px;transition:width 0.6s;"></div>
+      </div>
+      {% endif %}
+    </div>
+
+  </div>
+
+  <!-- Ratios -->
+  <h2 style="font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:700;margin-bottom:14px;">Ratios clés</h2>
+  <div class="card" style="padding:0;overflow:hidden;margin-bottom:28px;">
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);">
+
+      <div style="padding:22px;border-right:1px solid var(--border);text-align:center;">
+        <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Candidatures / offre</div>
+        <div style="font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:800;color:var(--ink);">
+          {% if stats.nb_offres and stats.nb_offres > 0 %}
+            {{ (stats.nb_candidatures / stats.nb_offres)|round(1) }}
+          {% else %}—{% endif %}
+        </div>
+      </div>
+
+      <div style="padding:22px;border-right:1px solid var(--border);text-align:center;">
+        <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Entretiens / candidature</div>
+        <div style="font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:800;color:var(--ink);">
+          {% if stats.nb_candidatures and stats.nb_candidatures > 0 %}
+            {{ (stats.nb_entretiens / stats.nb_candidatures * 100)|round(1) }}%
+          {% else %}—{% endif %}
+        </div>
+      </div>
+
+      <div style="padding:22px;text-align:center;">
+        <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Offres / entreprise</div>
+        <div style="font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:800;color:var(--ink);">
+          {% if stats.nb_entreprises and stats.nb_entreprises > 0 %}
+            {{ (stats.nb_offres / stats.nb_entreprises)|round(1) }}
+          {% else %}—{% endif %}
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+{% endblock %}

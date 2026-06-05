@@ -1,60 +1,519 @@
 {% extends "base_public.html" %}
 
-{% block title %}Se connecter à Yassir RH{% endblock %}
+{% block title %}Connexion — Djadara RH{% endblock %}
 
 {% block head %}
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,400&display=swap" rel="stylesheet">
 <style>
-    .login-outer {
-        min-height: 100vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: radial-gradient(circle at 10% 20%, rgb(255, 200, 212) 0%, rgb(255, 240, 243) 90.1%);
-        padding: 20px;
-    }
-    .login-card {
-        background: #ffffff;
-        padding: 40px;
-        border-radius: 24px;
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
-        width: 100%;
-        max-width: 450px;
-    }
-    .login-header h1 { font-size: 28px; font-weight: 700; color: #0F172A; margin-bottom: 8px; }
-    .form-group { margin-bottom: 20px; }
-    .form-group label { display: block; margin-bottom: 8px; font-weight: 500; font-size: 14px; }
-    .form-control { width: 100%; padding: 14px 16px; border: 1.5px solid #E2E8F0; border-radius: 12px; outline: none; font-size: 15px; }
-    .form-control:focus { border-color: #FF3366; }
-    .btn-primary { width: 100%; background: #FF3366; color: white; border: none; padding: 14px; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; }
-    .btn-primary:hover { background: #E02253; }
+/* ══════════════════════════════════
+   THEME VARIABLES — dark (default)
+══════════════════════════════════ */
+:root {
+  --orange:        #F4845F;
+  --orange-dark:   #D96840;
+  --orange-light:  #FEF4EF;
+  --orange-pastel: #FCE8DF;
+  --mauve:         #9B7EC8;
+  --mauve-dark:    #7A5DAA;
+  --mauve-light:   #F5F0FC;
+  --mauve-pastel:  #EDE6F8;
+  --mint:          #3DAA7A;
+  --mint-dark:     #2A7D59;
+  --mint-light:    #EAF8F0;
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  min-height: 100vh;
+  line-height: 1.6;
+  overflow-x: hidden;
+  transition: background 0.4s, color 0.4s;
+
+  /* dark default */
+  --ink:         #0F1923;
+  --ink2:        #1A2533;
+  --muted:       #5E738A;
+  --border:      #E0EAF2;
+  --bg:          #F5F9FC;
+  --white:       #FFFFFF;
+  --card-bg:     #ffffff;
+  --card-border: #E0EAF2;
+
+  --nav-bg:              rgba(15,25,35,0.94);
+  --nav-border:          rgba(255,255,255,0.07);
+  --nav-logo-color:      #ffffff;
+  --nav-link-color:      rgba(255,255,255,0.6);
+  --nav-link-hover-bg:   rgba(255,255,255,0.07);
+  --nav-link-hover-color:#ffffff;
+  --nav-ghost-color:     #ffffff;
+  --nav-ghost-border:    rgba(255,255,255,0.25);
+  --nav-ghost-hover-bg:  rgba(255,255,255,0.08);
+
+  --page-bg1: #0F1923;
+  --page-bg2: #1E1040;
+  --page-bg3: #2B1500;
+
+  --toggle-bg:         rgba(255,255,255,0.1);
+  --toggle-icon-color: #ffffff;
+
+  --label-color:   rgba(255,255,255,0.5);
+  --input-bg:      rgba(255,255,255,0.06);
+  --input-border:  rgba(255,255,255,0.12);
+  --input-color:   #ffffff;
+  --input-focus-border: var(--orange);
+  --input-focus-shadow: rgba(244,132,95,0.18);
+  --ph-color:      rgba(255,255,255,0.25);
+  --card-glass-bg: rgba(255,255,255,0.05);
+  --card-glass-border: rgba(255,255,255,0.1);
+  --text-main:     #ffffff;
+  --text-sub:      rgba(255,255,255,0.45);
+  --link-color:    var(--orange);
+  --footer-link:   rgba(255,255,255,0.45);
+  --footer-link-hover: #ffffff;
+  --select-bg:     rgba(255,255,255,0.06);
+}
+
+body.light {
+  --nav-bg:              rgba(255,255,255,0.95);
+  --nav-border:          rgba(0,0,0,0.08);
+  --nav-logo-color:      #0F1923;
+  --nav-link-color:      #5E738A;
+  --nav-link-hover-bg:   rgba(155,126,200,0.08);
+  --nav-link-hover-color:#0F1923;
+  --nav-ghost-color:     #0F1923;
+  --nav-ghost-border:    rgba(15,25,35,0.2);
+  --nav-ghost-hover-bg:  rgba(15,25,35,0.05);
+
+  --page-bg1: #EDE6F8;
+  --page-bg2: #F5F0FC;
+  --page-bg3: #FEF4EF;
+
+  --toggle-bg:         rgba(155,126,200,0.15);
+  --toggle-icon-color: #7A5DAA;
+
+  --label-color:   #374151;
+  --input-bg:      #ffffff;
+  --input-border:  #D8C8F0;
+  --input-color:   #0F1923;
+  --input-focus-border: var(--orange);
+  --input-focus-shadow: rgba(244,132,95,0.15);
+  --ph-color:      #B0ADA6;
+  --card-glass-bg: rgba(255,255,255,0.85);
+  --card-glass-border: rgba(155,126,200,0.2);
+  --text-main:     #0F1923;
+  --text-sub:      #5E738A;
+  --link-color:    var(--orange-dark);
+  --footer-link:   #5E738A;
+  --footer-link-hover: #0F1923;
+  --select-bg:     #ffffff;
+}
+
+/* ── NAV ── */
+.nav {
+  position: sticky; top: 0; z-index: 100;
+  background: var(--nav-bg);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--nav-border);
+  padding: 0 52px; height: 66px;
+  display: flex; align-items: center; justify-content: space-between; gap: 24px;
+  transition: background 0.4s, border-color 0.4s;
+}
+.nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+.nav-logo img { width: 38px; height: 38px; border-radius: 10px; object-fit: cover; }
+.nav-logo-name {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800; font-size: 19px;
+  color: var(--nav-logo-color); letter-spacing: -0.3px;
+  transition: color 0.4s;
+}
+.nav-actions { display: flex; align-items: center; gap: 10px; }
+.theme-toggle {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: var(--toggle-bg); border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; color: var(--toggle-icon-color);
+  transition: background 0.3s, transform 0.3s;
+  flex-shrink: 0;
+}
+.theme-toggle:hover { transform: rotate(20deg) scale(1.1); }
+.btn-ghost-nav {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 18px; border-radius: 10px;
+  font-size: 13px; font-weight: 500;
+  color: var(--nav-ghost-color);
+  background: transparent; border: 1.5px solid var(--nav-ghost-border);
+  text-decoration: none;
+  transition: background 0.3s;
+  font-family: 'DM Sans', sans-serif;
+}
+.btn-ghost-nav:hover { background: var(--nav-ghost-hover-bg); }
+
+/* ── PAGE BACKGROUND ── */
+.page-bg {
+  min-height: calc(100vh - 66px);
+  background: linear-gradient(135deg, var(--page-bg1) 0%, var(--page-bg2) 50%, var(--page-bg3) 100%);
+  display: flex; align-items: center; justify-content: center;
+  padding: 48px 16px;
+  position: relative;
+  overflow: hidden;
+  transition: background 0.4s;
+}
+.page-bg::before {
+  content: '';
+  position: absolute; top: -200px; right: -200px;
+  width: 500px; height: 500px;
+  background: radial-gradient(circle, rgba(244,132,95,0.12) 0%, transparent 70%);
+  border-radius: 50%; pointer-events: none;
+}
+.page-bg::after {
+  content: '';
+  position: absolute; bottom: -150px; left: -150px;
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, rgba(155,126,200,0.1) 0%, transparent 70%);
+  border-radius: 50%; pointer-events: none;
+}
+
+/* ── CARD ── */
+.card {
+  width: 100%; max-width: 460px;
+  background: var(--card-glass-bg);
+  border: 1px solid var(--card-glass-border);
+  border-radius: 24px;
+  overflow: hidden;
+  backdrop-filter: blur(20px);
+  animation: slideUp 0.5s cubic-bezier(.22,1,.36,1) both;
+  position: relative; z-index: 1;
+}
+@keyframes slideUp {
+  from { opacity:0; transform: translateY(28px); }
+  to   { opacity:1; transform: translateY(0); }
+}
+
+/* ── CARD HEADER ── */
+.card-header {
+  padding: 28px 36px 24px;
+  border-bottom: 1px solid var(--card-glass-border);
+  position: relative; overflow: hidden;
+}
+/* accent blob inside header */
+.card-header::after {
+  content: '';
+  position: absolute; bottom: -40px; right: -40px;
+  width: 130px; height: 130px;
+  border-radius: 50%;
+  opacity: 0.18;
+  pointer-events: none;
+}
+/* ── CARD background par rôle ──
+   Le JS met .role-candidat / .role-entreprise sur #cardBody.
+   On stylise la card via une classe ajoutée au mainCard par le JS.
+*/
+
+/* CANDIDAT */
+#mainCard.active-candidat {
+  background: rgba(244,132,95,0.07);
+  border-color: rgba(244,132,95,0.2);
+}
+#mainCard.active-candidat .card-header { background: rgba(244,132,95,0.10); }
+#mainCard.active-candidat .card-header::after { background: var(--orange); }
+#mainCard.active-candidat .form-group input:focus { border-color: var(--orange); box-shadow: 0 0 0 3px rgba(244,132,95,0.18); }
+#mainCard.active-candidat .forgot { color: var(--orange); }
+
+/* ENTREPRISE */
+#mainCard.active-entreprise {
+  background: rgba(155,126,200,0.07);
+  border-color: rgba(155,126,200,0.2);
+}
+#mainCard.active-entreprise .card-header { background: rgba(155,126,200,0.10); }
+#mainCard.active-entreprise .card-header::after { background: var(--mauve); }
+#mainCard.active-entreprise .form-group input:focus { border-color: var(--mauve); box-shadow: 0 0 0 3px rgba(155,126,200,0.18); }
+#mainCard.active-entreprise .forgot { color: var(--mauve); }
+
+/* mode clair */
+body.light #mainCard.active-candidat   { background: #FFF1EB; border-color: rgba(244,132,95,0.3); }
+body.light #mainCard.active-candidat .card-header   { background: #FCE8DF; }
+body.light #mainCard.active-entreprise { background: #F3EEFF; border-color: rgba(155,126,200,0.3); }
+body.light #mainCard.active-entreprise .card-header { background: #EDE6F8; }
+
+.role-emoji { font-size: 32px; margin-bottom: 8px; }
+.card-title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800; font-size: 24px;
+  color: var(--text-main); margin-bottom: 4px;
+  transition: color 0.4s;
+}
+.card-subtitle { font-size: 13px; color: var(--text-sub); transition: color 0.4s; }
+
+/* ── ROLE TABS ── */
+.role-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-bottom: 1px solid var(--card-glass-border);
+}
+.role-tab {
+  padding: 14px 8px; text-align: center;
+  cursor: pointer; border: none; background: transparent;
+  font-family: 'Syne', sans-serif;
+  font-size: 11px; font-weight: 700;
+  color: var(--text-sub);
+  letter-spacing: 0.08em; text-transform: uppercase;
+  border-bottom: 3px solid transparent;
+  transition: all 0.2s;
+}
+.role-tab span { display: block; font-size: 18px; margin-bottom: 3px; }
+.role-tab:hover:not(.active) { background: rgba(255,255,255,0.04); }
+
+/* active — color changes by role */
+.role-tab.active[data-role="candidat"] {
+  color: var(--orange);
+  border-bottom-color: var(--orange);
+  background: rgba(244,132,95,0.06);
+}
+.role-tab.active[data-role="entreprise"] {
+  color: var(--mauve);
+  border-bottom-color: var(--mauve);
+  background: rgba(155,126,200,0.06);
+}
+
+/* ── CARD BODY ── */
+.card-body { padding: 28px 36px 32px; }
+
+/* ── ALERTS ── */
+.alert {
+  padding: 11px 14px; border-radius: 10px;
+  font-size: 13px; font-weight: 500;
+  margin-bottom: 18px;
+  display: flex; align-items: center; gap: 8px;
+}
+.alert-danger   { background:#FEE2E2; color:#B91C1C; border-left:3px solid #EF4444; }
+.alert-success  { background:#D1FAE5; color:#065F46; border-left:3px solid #22C55E; }
+.alert-warning  { background:#FEF3C7; color:#92400E; border-left:3px solid #F59E0B; }
+.alert-info     { background:#DBEAFE; color:#1E40AF; border-left:3px solid #3B82F6; }
+
+/* ── FORM ── */
+.form-group { margin-bottom: 16px; }
+.form-group label {
+  display: block; font-size: 11px; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--label-color); margin-bottom: 7px;
+  transition: color 0.4s;
+}
+.form-group input {
+  width: 100%; padding: 12px 14px;
+  border: 1.5px solid var(--input-border);
+  border-radius: 10px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px; color: var(--input-color);
+  background: var(--input-bg); outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.4s, color 0.4s;
+}
+.form-group input::placeholder { color: var(--ph-color); }
+.form-group input:focus {
+  border-color: var(--input-focus-border);
+  box-shadow: 0 0 0 3px var(--input-focus-shadow);
+}
+/* focus color changes by active role */
+.role-entreprise .form-group input:focus {
+  --input-focus-border: var(--mauve);
+  --input-focus-shadow: rgba(155,126,200,0.18);
+}
+
+.remember-row {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 20px; font-size: 13px; color: var(--text-sub);
+}
+.remember { display: flex; align-items: center; gap: 7px; cursor: pointer; }
+.remember input { width: 14px; height: 14px; }
+.forgot {
+  color: var(--link-color); text-decoration: none;
+  font-weight: 600; font-size: 13px;
+  border-bottom: 1px solid currentColor; padding-bottom: 1px;
+}
+.forgot:hover { opacity: 0.75; }
+
+/* ── SUBMIT BTN ── */
+.btn-submit {
+  width: 100%; padding: 13px; border: none; border-radius: 12px;
+  font-family: 'Syne', sans-serif;
+  font-size: 14px; font-weight: 700; letter-spacing: 0.04em;
+  cursor: pointer; transition: all 0.2s;
+  margin-bottom: 18px;
+  position: relative; overflow: hidden;
+  color: white;
+}
+.btn-candidat   { background: var(--orange); }
+.btn-candidat:hover   { background: var(--orange-dark); }
+.btn-entreprise { background: var(--mauve); }
+.btn-entreprise:hover { background: var(--mauve-dark); }
+
+/* ── FOOTER TEXT ── */
+.footer-text { text-align: center; font-size: 13px; color: var(--text-sub); }
+.footer-text a { color: var(--link-color); font-weight: 600; text-decoration: none; }
+.footer-text a:hover { opacity: 0.75; }
+
+/* ── ADMIN TINY LINK ── */
+.admin-btn {
+  position: absolute; top: 18px; right: 20px;
+  display: inline-flex; align-items: center; gap: 5px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 20px; padding: 5px 12px;
+  font-size: 11px; font-weight: 600;
+  color: rgba(255,255,255,0.4);
+  text-decoration: none; letter-spacing: 0.04em;
+  transition: all 0.2s; z-index: 2;
+}
+body.light .admin-btn {
+  background: rgba(0,0,0,0.04);
+  border-color: rgba(0,0,0,0.1);
+  color: rgba(0,0,0,0.35);
+}
+.admin-btn:hover { background: rgba(61,170,122,0.12); border-color: rgba(61,170,122,0.35); color: var(--mint); }
+
+@media (max-width: 600px) {
+  .nav { padding: 0 20px; }
+  .card-header, .card-body { padding-left: 22px; padding-right: 22px; }
+  .nav-logo-name { font-size: 16px; }
+}
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="login-outer">
-    <div class="login-card">
-        <div class="login-header">
-            <h1>Connexion</h1>
-            <p style="color: #64748B; margin-bottom: 30px;">Accédez à votre espace Recruteur</p>
+
+<!-- ── NAVBAR (identique index.html) ── -->
+<nav class="nav">
+  <a href="{{ url_for('index') }}" class="nav-logo">
+    <img src="{{ url_for('static', filename='logo.png') }}" alt="Djadara RH">
+    <span class="nav-logo-name">Djadara RH</span>
+  </a>
+  <div class="nav-actions">
+    <button class="theme-toggle" id="themeToggle" title="Changer de thème">🌙</button>
+    <a href="{{ url_for('login') }}" class="btn-ghost-nav">Se connecter</a>
+  </div>
+</nav>
+
+<div class="page-bg">
+  <div class="card" id="mainCard">
+
+    <!-- Admin link discret -->
+    <a href="{{ url_for('admin_login') }}" class="admin-btn">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+      </svg>
+      Admin
+    </a>
+
+    <!-- Header -->
+    <div class="card-header" id="cardHeader">
+      <div class="role-emoji" id="roleEmoji">👤</div>
+      <div class="card-title" id="cardTitle">Connexion Candidat</div>
+      <div class="card-subtitle" id="cardSubtitle">Accédez à votre espace candidat</div>
+    </div>
+
+    <!-- Role Tabs -->
+    <div class="role-tabs">
+      <button class="role-tab active" data-role="candidat" onclick="switchTab('candidat')">
+        <span>👤</span>Candidat
+      </button>
+      <button class="role-tab" data-role="entreprise" onclick="switchTab('entreprise')">
+        <span>🏢</span>Entreprise
+      </button>
+    </div>
+
+    <!-- Body -->
+    <div class="card-body" id="cardBody">
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endwith %}
+
+      <form action="{{ url_for('login') }}" method="POST" id="loginForm">
+        <input type="hidden" name="role" id="role-input" value="candidat">
+
+        <div class="form-group">
+          <label>Adresse email</label>
+          <input type="email" name="email" placeholder="vous@exemple.com" required>
         </div>
 
-        <form action="{{ url_for('login') }}" method="POST">
-            <div class="form-group">
-                <label for="email">Adresse email</label>
-                <input type="email" id="email" name="email" class="form-control" placeholder="exemple@yassir.com" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="password">Mot de passe</label>
-                <input type="password" id="password" name="password" class="form-control" placeholder="••••••••" required>
-            </div>
+        <div class="form-group">
+          <label>Mot de passe</label>
+          <input type="password" name="password" placeholder="••••••••" required>
+        </div>
 
-            <button type="submit" class="btn-primary">Se connecter</button>
-        </form>
+        <div class="remember-row">
+          <label class="remember">
+            <input type="checkbox" name="remember_me" value="1">
+            Se souvenir de moi
+          </label>
+          <a href="{{ url_for('forgot_password') }}" class="forgot">Mot de passe oublié ?</a>
+        </div>
 
-        <p style="text-align: center; margin-top: 25px; font-size: 14px; color: #64748B;">
-            Pas encore de compte ? <a href="{{ url_for('register') }}" style="color: #FF3366; text-decoration: none; font-weight: 600;">Créer un compte</a>
-        </p>
+        <button type="submit" class="btn-submit btn-candidat" id="btnSubmit">
+          Se connecter →
+        </button>
+      </form>
+
+      <p class="footer-text">
+        Pas encore de compte ?
+        <a href="{{ url_for('register') }}?role=candidat" id="register-link">S'inscrire</a>
+      </p>
+
     </div>
+  </div>
 </div>
+
+<script>
+/* ── Theme toggle ── */
+(function() {
+  const toggle = document.getElementById('themeToggle');
+  const body   = document.body;
+  const saved  = localStorage.getItem('djadara-theme');
+  if (saved === 'light') { body.classList.add('light'); toggle.textContent = '☀️'; }
+  toggle.addEventListener('click', () => {
+    const isLight = body.classList.toggle('light');
+    toggle.textContent = isLight ? '☀️' : '🌙';
+    localStorage.setItem('djadara-theme', isLight ? 'light' : 'dark');
+    toggle.style.transform = 'rotate(360deg) scale(1.2)';
+    setTimeout(() => toggle.style.transform = '', 400);
+  });
+})();
+
+/* ── Role tab switch — GLOBAL pour onclick HTML ── */
+const configs = {
+  candidat:   { emoji: '👤', title: 'Connexion Candidat',   subtitle: 'Accédez à votre espace candidat',   btnClass: 'btn-candidat',   cardClass: 'role-candidat' },
+  entreprise: { emoji: '🏢', title: 'Connexion Entreprise', subtitle: 'Accédez à votre espace entreprise', btnClass: 'btn-entreprise', cardClass: 'role-entreprise' }
+};
+
+function switchTab(role) {
+  document.querySelectorAll('.role-tab').forEach(t => t.classList.remove('active'));
+  document.querySelector('.role-tab[data-role="' + role + '"]').classList.add('active');
+  document.getElementById('role-input').value = role;
+
+  const cfg = configs[role];
+  document.getElementById('roleEmoji').textContent    = cfg.emoji;
+  document.getElementById('cardTitle').textContent    = cfg.title;
+  document.getElementById('cardSubtitle').textContent = cfg.subtitle;
+
+  document.getElementById('btnSubmit').className = 'btn-submit ' + cfg.btnClass;
+  document.getElementById('cardBody').className  = 'card-body ' + cfg.cardClass;
+
+  const card = document.getElementById('mainCard');
+  card.classList.remove('active-candidat', 'active-entreprise');
+  card.classList.add('active-' + role);
+
+  document.getElementById('register-link').href = "{{ url_for('register') }}?role=" + role;
+}
+
+/* init */
+(function() {
+  const urlRole  = new URLSearchParams(window.location.search).get('role');
+  const initRole = (urlRole && urlRole !== 'admin') ? urlRole : "{{ selected_role|default('candidat') }}";
+  switchTab(initRole);
+})();
+</script>
+
 {% endblock %}

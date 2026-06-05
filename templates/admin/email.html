@@ -1,0 +1,26 @@
+{% extends "admin/base.html" %}
+{% block title %}Email — Yassir RH{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Envoyer un email</h1>
+    <p>{{ candidat.prenom }} {{ candidat.nom }} — {{ candidat.email }}</p>
+  </div>
+</div>
+
+<div class="card" style="max-width:720px;margin:0 auto;">
+  <form method="POST">
+    <div class="field">
+      <label>Sujet</label>
+      <input type="text" name="sujet" required>
+    </div>
+    <div class="field" style="margin-top:10px;">
+      <label>Corps</label>
+      <textarea name="corps" style="min-height:160px;" required></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary" style="margin-top:14px;">Envoyer</button>
+  </form>
+</div>
+{% endblock %}
+

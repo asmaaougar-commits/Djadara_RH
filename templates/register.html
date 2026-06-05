@@ -1,66 +1,500 @@
 {% extends "base_public.html" %}
 
-{% block title %}Créer un compte - Yassir RH{% endblock %}
+{% block title %}Créer un compte — Djadara RH{% endblock %}
 
 {% block head %}
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,400&display=swap" rel="stylesheet">
 <style>
-    .login-outer {
-        min-height: 100vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: radial-gradient(circle at 10% 20%, rgb(255, 200, 212) 0%, rgb(255, 240, 243) 90.1%);
-        padding: 20px;
-    }
-    .login-card {
-        background: #ffffff;
-        padding: 40px;
-        border-radius: 24px;
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
-        width: 100%;
-        max-width: 450px;
-    }
-    .form-group { margin-bottom: 15px; }
-    .form-group label { display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px; }
-    .form-control { width: 100%; padding: 12px 14px; border: 1.5px solid #E2E8F0; border-radius: 12px; outline: none; }
-    .btn-primary { width: 100%; background: #FF3366; color: white; border: none; padding: 14px; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; }
+:root {
+  --orange:        #F4845F;
+  --orange-dark:   #D96840;
+  --orange-light:  #FEF4EF;
+  --mauve:         #9B7EC8;
+  --mauve-dark:    #7A5DAA;
+  --mauve-light:   #F5F0FC;
+  --mint:          #3DAA7A;
+  --mint-dark:     #2A7D59;
+  --mint-light:    #EAF8F0;
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  min-height: 100vh; line-height: 1.6; overflow-x: hidden;
+  transition: background 0.4s, color 0.4s;
+
+  --nav-bg:              rgba(15,25,35,0.94);
+  --nav-border:          rgba(255,255,255,0.07);
+  --nav-logo-color:      #ffffff;
+  --nav-ghost-color:     #ffffff;
+  --nav-ghost-border:    rgba(255,255,255,0.25);
+  --nav-ghost-hover-bg:  rgba(255,255,255,0.08);
+  --page-bg1: #0F1923;
+  --page-bg2: #1E1040;
+  --page-bg3: #2B1500;
+  --toggle-bg:         rgba(255,255,255,0.1);
+  --toggle-icon-color: #ffffff;
+  --label-color:   rgba(255,255,255,0.5);
+  --input-bg:      rgba(255,255,255,0.06);
+  --input-border:  rgba(255,255,255,0.12);
+  --input-color:   #ffffff;
+  --ph-color:      rgba(255,255,255,0.25);
+  --card-glass-bg: rgba(255,255,255,0.05);
+  --card-glass-border: rgba(255,255,255,0.1);
+  --text-main:     #ffffff;
+  --text-sub:      rgba(255,255,255,0.45);
+  --link-color:    var(--orange);
+  --section-sep:   rgba(255,255,255,0.08);
+}
+
+body.light {
+  --nav-bg:              rgba(255,255,255,0.95);
+  --nav-border:          rgba(0,0,0,0.08);
+  --nav-logo-color:      #0F1923;
+  --nav-ghost-color:     #0F1923;
+  --nav-ghost-border:    rgba(15,25,35,0.2);
+  --nav-ghost-hover-bg:  rgba(15,25,35,0.05);
+  --page-bg1: #EDE6F8;
+  --page-bg2: #F5F0FC;
+  --page-bg3: #FEF4EF;
+  --toggle-bg:         rgba(155,126,200,0.15);
+  --toggle-icon-color: #7A5DAA;
+  --label-color:   #374151;
+  --input-bg:      #ffffff;
+  --input-border:  #D8C8F0;
+  --input-color:   #0F1923;
+  --ph-color:      #B0ADA6;
+  --card-glass-bg: rgba(255,255,255,0.85);
+  --card-glass-border: rgba(155,126,200,0.2);
+  --text-main:     #0F1923;
+  --text-sub:      #5E738A;
+  --link-color:    var(--orange-dark);
+  --section-sep:   rgba(0,0,0,0.07);
+}
+
+.nav {
+  position: sticky; top: 0; z-index: 100;
+  background: var(--nav-bg); backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--nav-border);
+  padding: 0 52px; height: 66px;
+  display: flex; align-items: center; justify-content: space-between; gap: 24px;
+  transition: background 0.4s, border-color 0.4s;
+}
+.nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+.nav-logo img { width: 38px; height: 38px; border-radius: 10px; object-fit: cover; }
+.nav-logo-name {
+  font-family: 'Syne', sans-serif; font-weight: 800; font-size: 19px;
+  color: var(--nav-logo-color); letter-spacing: -0.3px; transition: color 0.4s;
+}
+.nav-actions { display: flex; align-items: center; gap: 10px; }
+.theme-toggle {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: var(--toggle-bg); border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; color: var(--toggle-icon-color);
+  transition: background 0.3s, transform 0.3s; flex-shrink: 0;
+}
+.theme-toggle:hover { transform: rotate(20deg) scale(1.1); }
+.btn-ghost-nav {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 18px; border-radius: 10px; font-size: 13px; font-weight: 500;
+  color: var(--nav-ghost-color); background: transparent;
+  border: 1.5px solid var(--nav-ghost-border); text-decoration: none;
+  transition: background 0.3s; font-family: 'DM Sans', sans-serif;
+}
+.btn-ghost-nav:hover { background: var(--nav-ghost-hover-bg); }
+
+.page-bg {
+  min-height: calc(100vh - 66px);
+  background: linear-gradient(135deg, var(--page-bg1) 0%, var(--page-bg2) 50%, var(--page-bg3) 100%);
+  display: flex; align-items: center; justify-content: center;
+  padding: 48px 16px; position: relative; overflow: hidden; transition: background 0.4s;
+}
+.page-bg::before {
+  content: ''; position: absolute; top: -200px; right: -200px;
+  width: 500px; height: 500px;
+  background: radial-gradient(circle, rgba(244,132,95,0.10) 0%, transparent 70%);
+  border-radius: 50%; pointer-events: none;
+}
+.page-bg::after {
+  content: ''; position: absolute; bottom: -150px; left: -150px;
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, rgba(155,126,200,0.10) 0%, transparent 70%);
+  border-radius: 50%; pointer-events: none;
+}
+
+.card {
+  width: 100%; max-width: 520px;
+  background: var(--card-glass-bg); border: 1px solid var(--card-glass-border);
+  border-radius: 24px; overflow: hidden; backdrop-filter: blur(20px);
+  animation: slideUp 0.5s cubic-bezier(.22,1,.36,1) both; position: relative; z-index: 1;
+}
+@keyframes slideUp {
+  from { opacity:0; transform: translateY(28px); }
+  to   { opacity:1; transform: translateY(0); }
+}
+
+.card-header {
+  padding: 28px 36px 24px;
+  border-bottom: 1px solid var(--card-glass-border);
+  position: relative; overflow: hidden;
+}
+.card-header::after {
+  content: ''; position: absolute; bottom: -40px; right: -40px;
+  width: 130px; height: 130px; border-radius: 50%; opacity: 0.15; pointer-events: none;
+}
+.role-emoji { font-size: 32px; margin-bottom: 8px; }
+.card-title {
+  font-family: 'Syne', sans-serif; font-weight: 800; font-size: 24px;
+  color: var(--text-main); margin-bottom: 4px; transition: color 0.4s;
+}
+.card-subtitle { font-size: 13px; color: var(--text-sub); transition: color 0.4s; }
+
+.role-tabs {
+  display: grid; grid-template-columns: repeat(2, 1fr);
+  border-bottom: 1px solid var(--card-glass-border);
+}
+.role-tab {
+  padding: 14px 8px; text-align: center; cursor: pointer;
+  border: none; background: transparent;
+  font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700;
+  color: var(--text-sub); letter-spacing: 0.08em; text-transform: uppercase;
+  border-bottom: 3px solid transparent; transition: all 0.2s;
+}
+.role-tab span { display: block; font-size: 18px; margin-bottom: 3px; }
+.role-tab:hover:not(.active) { background: rgba(255,255,255,0.04); }
+.role-tab.active[data-role="candidat"]   { color: var(--orange); border-bottom-color: var(--orange); background: rgba(244,132,95,0.06); }
+.role-tab.active[data-role="admin"]      { color: var(--mint);   border-bottom-color: var(--mint);   background: rgba(61,170,122,0.06); }
+.role-tab.active[data-role="entreprise"] { color: var(--mauve);  border-bottom-color: var(--mauve);  background: rgba(155,126,200,0.06); }
+
+.card-body { padding: 28px 36px 32px; }
+
+.alert { padding: 11px 14px; border-radius: 10px; font-size: 13px; font-weight: 500; margin-bottom: 18px; display: flex; align-items: center; gap: 8px; }
+.alert-danger   { background:#FEE2E2; color:#B91C1C; border-left:3px solid #EF4444; }
+.alert-success  { background:#D1FAE5; color:#065F46; border-left:3px solid #22C55E; }
+.alert-warning  { background:#FEF3C7; color:#92400E; border-left:3px solid #F59E0B; }
+
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.form-group { margin-bottom: 16px; }
+.form-group label {
+  display: block; font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--label-color); margin-bottom: 7px; transition: color 0.4s;
+}
+.form-group input, .form-group select {
+  width: 100%; padding: 12px 14px;
+  border: 1.5px solid var(--input-border); border-radius: 10px;
+  font-family: 'DM Sans', sans-serif; font-size: 14px;
+  color: var(--input-color); background: var(--input-bg); outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.4s, color 0.4s;
+  -webkit-appearance: none;
+}
+.form-group input::placeholder { color: var(--ph-color); }
+.form-group input:focus, .form-group select:focus {
+  border-color: var(--orange);
+  box-shadow: 0 0 0 3px rgba(244,132,95,0.18);
+}
+
+.role-section { display: none; }
+.role-section.visible { display: block; }
+
+.section-label {
+  font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-sub);
+  margin: 20px 0 14px; display: flex; align-items: center; gap: 8px;
+}
+.section-label::after { content: ''; flex: 1; height: 1px; background: var(--section-sep); }
+
+.btn-submit {
+  width: 100%; padding: 14px; border: none; border-radius: 12px;
+  font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700;
+  letter-spacing: 0.04em; cursor: pointer; transition: all 0.2s;
+  margin-top: 8px; color: white;
+}
+.btn-candidat   { background: var(--orange); }
+.btn-candidat:hover   { background: var(--orange-dark); }
+.btn-admin      { background: var(--mint); }
+.btn-admin:hover      { background: var(--mint-dark); }
+.btn-entreprise { background: var(--mauve); }
+.btn-entreprise:hover { background: var(--mauve-dark); }
+
+.footer-text { text-align: center; font-size: 13px; color: var(--text-sub); margin-top: 20px; }
+.footer-text a { color: var(--link-color); font-weight: 600; text-decoration: none; }
+.footer-text a:hover { opacity: 0.75; }
+
+/* ── CARD background par rôle ── */
+/* CANDIDAT */
+.card.active-candidat   { background: rgba(244,132,95,0.07); border-color: rgba(244,132,95,0.2); }
+.card.active-candidat .card-header { background: rgba(244,132,95,0.10); }
+.card.active-candidat .card-header::after { background: var(--orange); }
+.card.active-candidat .form-group input:focus,
+.card.active-candidat .form-group select:focus { border-color: var(--orange); box-shadow: 0 0 0 3px rgba(244,132,95,0.18); }
+/* ADMIN */
+.card.active-admin      { background: rgba(61,170,122,0.07); border-color: rgba(61,170,122,0.2); }
+.card.active-admin .card-header { background: rgba(61,170,122,0.10); }
+.card.active-admin .card-header::after { background: var(--mint); }
+.card.active-admin .form-group input:focus,
+.card.active-admin .form-group select:focus { border-color: var(--mint); box-shadow: 0 0 0 3px rgba(61,170,122,0.18); }
+/* ENTREPRISE */
+.card.active-entreprise { background: rgba(155,126,200,0.07); border-color: rgba(155,126,200,0.2); }
+.card.active-entreprise .card-header { background: rgba(155,126,200,0.10); }
+.card.active-entreprise .card-header::after { background: var(--mauve); }
+.card.active-entreprise .form-group input:focus,
+.card.active-entreprise .form-group select:focus { border-color: var(--mauve); box-shadow: 0 0 0 3px rgba(155,126,200,0.18); }
+/* mode clair */
+body.light .card.active-candidat   { background: #FFF1EB; border-color: rgba(244,132,95,0.3); }
+body.light .card.active-candidat .card-header   { background: #FCE8DF; }
+body.light .card.active-admin      { background: #EDFBF5; border-color: rgba(61,170,122,0.3); }
+body.light .card.active-admin .card-header      { background: #D4F0E4; }
+body.light .card.active-entreprise { background: #F3EEFF; border-color: rgba(155,126,200,0.3); }
+body.light .card.active-entreprise .card-header { background: #EDE6F8; }
+
+.pwd-meter { display: flex; gap: 4px; margin-top: 7px; }
+.pwd-meter span { flex: 1; height: 3px; border-radius: 2px; background: var(--input-border); transition: background 0.3s; }
+.pwd-label { font-size: 11px; color: var(--text-sub); margin-top: 4px; }
+
+@media (max-width: 600px) {
+  .nav { padding: 0 20px; }
+  .card-header, .card-body { padding-left: 22px; padding-right: 22px; }
+  .form-row { grid-template-columns: 1fr; }
+}
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="login-outer">
-    <div class="login-card">
-        <h1 style="font-size: 26px; margin-bottom: 5px;">Inscription</h1>
-        <p style="color: #64748B; margin-bottom: 25px;">Créez votre profil recruteur</p>
 
-        <form action="{{ url_for('register') }}" method="POST" enctype="multipart/form-data">
-            <div class="form-group">
-                <label for="nom">Nom complet *</label>
-                <input type="text" id="nom" name="nom" class="form-control" required>
-            </div>
-            <div class="form-group">
-                <label for="entreprise">Entreprise / Organisation</label>
-                <input type="text" id="entreprise" name="entreprise" class="form-control">
-            </div>
-            <div class="form-group">
-                <label for="email">Adresse email *</label>
-                <input type="email" id="email" name="email" class="form-control" required>
-            </div>
-            <div class="form-group">
-                <label for="password">Mot de passe *</label>
-                <input type="password" id="password" name="password" class="form-control" required>
-            </div>
-            <div class="form-group">
-                <label for="avatar">Photo de profil (Avatar)</label>
-                <input type="file" id="avatar" name="avatar" class="form-control" accept="image/*">
-            </div>
+<nav class="nav">
+  <a href="{{ url_for('index') }}" class="nav-logo">
+    <img src="{{ url_for('static', filename='logo.png') }}" alt="Djadara RH">
+    <span class="nav-logo-name">Djadara RH</span>
+  </a>
+  <div class="nav-actions">
+    <button class="theme-toggle" id="themeToggle" title="Changer de thème">🌙</button>
+    <a href="{{ url_for('login') }}" class="btn-ghost-nav">Se connecter</a>
+  </div>
+</nav>
 
-            <button type="submit" class="btn-primary" style="margin-top: 10px;">S'inscrire</button>
-        </form>
+<div class="page-bg">
+  <div class="card">
 
-        <p style="text-align: center; margin-top: 20px; font-size: 14px; color: #64748B;">
-            Déjà inscrit ? <a href="{{ url_for('login') }}" style="color: #FF3366; text-decoration: none; font-weight: 600;">Se connecter</a>
-        </p>
+    <div class="card-header" id="cardHeader">
+      <div class="role-emoji" id="roleEmoji">👤</div>
+      <div class="card-title" id="cardTitle">Créer un compte</div>
+      <div class="card-subtitle" id="cardSubtitle">Rejoignez la plateforme en quelques secondes</div>
     </div>
+
+    <div class="role-tabs">
+      <button class="role-tab" data-role="candidat" type="button" onclick="switchRole('candidat')">
+        <span>👤</span>Candidat
+      </button>
+      <button class="role-tab" data-role="entreprise" type="button" onclick="switchRole('entreprise')">
+        <span>🏢</span>Entreprise
+      </button>
+    </div>
+
+    <div class="card-body">
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endwith %}
+
+      <form action="{{ url_for('register') }}" method="POST" id="registerForm" novalidate>
+        <input type="hidden" name="role" id="role-input" value="candidat">
+
+        <div class="form-row" id="field-nom-prenom">
+          <div class="form-group">
+            <label>Nom</label>
+            <input type="text" name="nom" id="input-nom" placeholder="Votre nom">
+          </div>
+          <div class="form-group">
+            <label>Prénom</label>
+            <input type="text" name="prenom" id="input-prenom" placeholder="Votre prénom">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Adresse email <span style="color:#EF4444;">*</span></label>
+          <input type="email" name="email" placeholder="vous@exemple.com" required>
+        </div>
+
+        <div class="form-group" id="field-telephone">
+          <label>Téléphone</label>
+          <input type="text" name="telephone" placeholder="+213 6xx xxx xxx">
+        </div>
+
+        <div class="form-group">
+          <label>Mot de passe <span style="color:#EF4444;">*</span></label>
+          <input type="password" name="password" id="password" placeholder="Min. 8 caractères" required>
+          <div class="pwd-meter">
+            <span id="s1"></span><span id="s2"></span>
+            <span id="s3"></span><span id="s4"></span>
+          </div>
+          <div class="pwd-label" id="pwd-label"></div>
+        </div>
+
+        <div class="form-group">
+          <label>Confirmer le mot de passe <span style="color:#EF4444;">*</span></label>
+          <input type="password" name="confirm_password" id="confirm_password"
+                 placeholder="Répétez le mot de passe" required>
+        </div>
+
+        <!-- CANDIDAT -->
+        <div class="role-section" id="section-candidat">
+          <div class="section-label">Profil candidat</div>
+          <div class="form-group">
+            <label>Niveau d'étude</label>
+            <input type="text" name="niveau_etude" placeholder="Ex : Master, Licence, BTS...">
+          </div>
+          <div class="form-group">
+            <label>Poste recherché</label>
+            <input type="text" name="titre_poste" placeholder="Ex : Développeur Python, RH...">
+          </div>
+        </div>
+
+        <!-- ADMIN -->
+        <div class="role-section" id="section-admin">
+          <div class="section-label">Profil admin</div>
+          <div class="form-group">
+            <label>Poste / Fonction</label>
+            <input type="text" name="poste" placeholder="Ex : Administrateur, Manager...">
+          </div>
+          <div class="form-group">
+            <label>ID Entreprise</label>
+            <input type="number" name="entreprise_id" placeholder="Fourni par votre entreprise">
+          </div>
+        </div>
+
+        <!-- ENTREPRISE -->
+        <div class="role-section" id="section-entreprise">
+          <div class="section-label">Informations entreprise</div>
+          <div class="form-group" id="field-nom-entreprise">
+            <label>Nom de l'entreprise <span style="color:#EF4444;">*</span></label>
+            <input type="text" name="nom_entreprise" id="input-nom-entreprise"
+                   placeholder="Nom légal de l'entreprise">
+          </div>
+          <div class="form-group">
+            <label>Secteur d'activité</label>
+            <input type="text" name="secteur" placeholder="Ex : Tech, Finance, Santé...">
+          </div>
+          <div class="form-group">
+            <label>Adresse</label>
+            <input type="text" name="adresse" placeholder="Adresse du siège">
+          </div>
+          <div class="form-group">
+            <label>Téléphone entreprise</label>
+            <input type="text" name="telephone_entreprise" placeholder="+213 ...">
+          </div>
+        </div>
+
+        <button type="submit" class="btn-submit btn-candidat" id="btnSubmit">
+          Créer mon compte →
+        </button>
+      </form>
+
+      <p class="footer-text">
+        Déjà inscrit ? <a href="{{ url_for('login') }}">Se connecter</a>
+      </p>
+    </div>
+  </div>
 </div>
+
+<script>
+/* ── Theme toggle ── */
+(function() {
+  const toggle = document.getElementById('themeToggle');
+  const body   = document.body;
+  const saved  = localStorage.getItem('djadara-theme');
+  if (saved === 'light') { body.classList.add('light'); toggle.textContent = '☀️'; }
+  toggle.addEventListener('click', () => {
+    const isLight = body.classList.toggle('light');
+    toggle.textContent = isLight ? '☀️' : '🌙';
+    localStorage.setItem('djadara-theme', isLight ? 'light' : 'dark');
+    toggle.style.transform = 'rotate(360deg) scale(1.2)';
+    setTimeout(() => toggle.style.transform = '', 400);
+  });
+})();
+
+/* ── Role switch — GLOBAL pour onclick HTML ── */
+const configs = {
+  candidat:   { emoji:'👤', title:'Créer un compte Candidat',  subtitle:'Trouvez les meilleures opportunités', btn:'btn-candidat' },
+  entreprise: { emoji:'🏢', title:'Créer un compte Entreprise', subtitle:'Recrutez les meilleurs talents',     btn:'btn-entreprise' },
+};
+
+function switchRole(role) {
+  document.querySelectorAll('.role-tab').forEach(t => t.classList.remove('active'));
+  document.querySelector('.role-tab[data-role="' + role + '"]').classList.add('active');
+  document.getElementById('role-input').value = role;
+
+  const cfg = configs[role];
+  document.getElementById('roleEmoji').textContent    = cfg.emoji;
+  document.getElementById('cardTitle').textContent    = cfg.title;
+  document.getElementById('cardSubtitle').textContent = cfg.subtitle;
+  document.getElementById('btnSubmit').className      = 'btn-submit ' + cfg.btn;
+
+  const card = document.querySelector('.card');
+  card.classList.remove('active-candidat', 'active-entreprise');
+  card.classList.add('active-' + role);
+
+  document.querySelectorAll('.role-section').forEach(s => s.classList.remove('visible'));
+  document.getElementById('section-' + role).classList.add('visible');
+
+  const isEntreprise = role === 'entreprise';
+  document.getElementById('field-nom-prenom').style.display = isEntreprise ? 'none' : '';
+  document.getElementById('field-telephone').style.display  = isEntreprise ? 'none' : '';
+
+  const nomInput    = document.getElementById('input-nom');
+  const prenomInput = document.getElementById('input-prenom');
+  const nomE        = document.getElementById('input-nom-entreprise');
+  nomInput.required    = !isEntreprise;
+  prenomInput.required = !isEntreprise;
+  nomE.required        = isEntreprise;
+  if (isEntreprise) { nomInput.value = ''; prenomInput.value = ''; }
+  else { nomE.value = ''; }
+}
+
+/* ── Password strength ── */
+document.getElementById('password').addEventListener('input', function() {
+  const v = this.value;
+  let score = 0;
+  if (v.length >= 8)           score++;
+  if (/[A-Z]/.test(v))         score++;
+  if (/[0-9]/.test(v))         score++;
+  if (/[^A-Za-z0-9]/.test(v))  score++;
+  const colors = ['', '#EF4444', '#F97316', '#EAB308', '#22C55E'];
+  const labels = ['', 'Faible', 'Moyen', 'Bon', 'Excellent'];
+  for (let i = 1; i <= 4; i++) {
+    document.getElementById('s' + i).style.background = i <= score ? colors[score] : 'var(--input-border)';
+  }
+  const lbl = document.getElementById('pwd-label');
+  lbl.textContent = v.length ? labels[score] : '';
+  lbl.style.color = colors[score];
+});
+
+/* ── Validation ── */
+document.getElementById('registerForm').addEventListener('submit', function(e) {
+  const role = document.getElementById('role-input').value;
+  const pwd  = document.getElementById('password').value;
+  const conf = document.getElementById('confirm_password').value;
+  if (role === 'entreprise') {
+    if (!document.getElementById('input-nom-entreprise').value.trim()) {
+      alert("Veuillez saisir le nom de l'entreprise."); e.preventDefault(); return;
+    }
+  } else {
+    if (!document.getElementById('input-nom').value.trim() ||
+        !document.getElementById('input-prenom').value.trim()) {
+      alert('Veuillez saisir votre nom et prénom.'); e.preventDefault(); return;
+    }
+  }
+  if (pwd.length < 8) { alert('Le mot de passe doit contenir au moins 8 caractères.'); e.preventDefault(); return; }
+  if (pwd !== conf)   { alert('Les mots de passe ne correspondent pas.'); e.preventDefault(); return; }
+});
+
+/* ── Init ── */
+(function() {
+  const urlRole = new URLSearchParams(window.location.search).get('role') || 'candidat';
+  switchRole(urlRole);
+})();
+</script>
 {% endblock %}

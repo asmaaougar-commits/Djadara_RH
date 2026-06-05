@@ -1,56 +1,79 @@
-{% extends "base.html" %}
-{% block title %}Résultats du Matching — Yassir RH{% endblock %}
+{% extends "entreprise/base.html" %}
+{% block title %}Matching IA — {{ offre.titre }} — Yassir RH{% endblock %}
 
 {% block head %}
 <style>
-  /* ── Header barre ── */
-  .page-header {
-    display: flex; align-items: center; justify-content: space-between;
-    margin-bottom: 28px; flex-wrap: wrap; gap: 14px;
+  /* ── Enterprise theme ── */
+  :root {
+    --enterprise-violet: #BFA6FF;
+    --enterprise-violet-dark: #8F6BE8;
+    --enterprise-bg: #F7F3FD;
+    --enterprise-card: #FFFFFF;
   }
-  .page-title {
-    font-size: 1.35rem; font-weight: 800; color: var(--text); letter-spacing: -0.5px;
+
+  /* ── Breadcrumb ── */
+  .breadcrumb {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 0.78rem; color: var(--muted); margin-bottom: 6px;
   }
-  .page-title span { color: var(--accent); }
-  .btn-launch-top {
-    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-    padding: 11px 24px;
-    background: linear-gradient(135deg, var(--accent) 0%, #8B5CF6 100%);
-    color: white; border: none; border-radius: 12px;
-    font-size: 0.88rem; font-weight: 700; cursor: pointer;
-    box-shadow: 0 4px 18px rgba(108,92,231,0.35);
-    transition: var(--transition); text-decoration: none;
+  .breadcrumb a { color: var(--muted); text-decoration: none; transition: color 0.15s; }
+  .breadcrumb a:hover { color: var(--green); }
+  .breadcrumb i { font-size: 0.6rem; }
+
+  /* ── Offre bar ── */
+  .offre-bar {
+    display: flex; align-items: center; gap: 14px;
+    background: #fff; border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 16px 22px;
+    box-shadow: var(--shadow); margin-bottom: 24px;
   }
-  .btn-launch-top:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(108,92,231,0.45); color: white; }
+  .offre-bar-icon {
+    width: 42px; height: 42px; border-radius: 12px;
+    background: var(--enterprise-violet);
+    display: flex; align-items: center; justify-content: center;
+    color: #1A0F2E; font-size: 1rem; flex-shrink: 0;
+    box-shadow: 0 8px 22px rgba(155,126,200,0.25);
+  }
+  .offre-bar-info { flex: 1; min-width: 0; }
+  .offre-bar-label {
+    font-size: 0.68rem; font-weight: 700; color: var(--orange);
+    text-transform: uppercase; letter-spacing: 0.1em;
+  }
+  .offre-bar-title { font-size: 1rem; font-weight: 700; color: var(--text); }
+  .offre-bar-meta  { font-size: 0.8rem; color: var(--muted); margin-top: 2px; }
+  .offre-bar-count {
+    font-size: 0.82rem; font-weight: 700; color: var(--green);
+    background: #E8F2EC; padding: 5px 14px; border-radius: 50px; flex-shrink: 0;
+  }
 
   /* ── Tableau classement ── */
   .ranking-table {
-    background: var(--white); border: 1px solid var(--border);
-    border-radius: var(--radius); box-shadow: var(--shadow-sm);
-    overflow: hidden; margin-bottom: 32px;
+    background: #fff; border: 1px solid var(--border);
+    border-radius: var(--radius); box-shadow: var(--shadow);
+    overflow: hidden; margin-bottom: 28px;
   }
   .ranking-head {
     display: grid;
-    grid-template-columns: 52px 1fr 110px 110px 130px 120px;
+    grid-template-columns: 52px 1fr 110px 110px 140px 120px;
     padding: 12px 20px;
-    background: var(--bg);
+    background: var(--enterprise-bg);
     border-bottom: 1px solid var(--border);
-    font-size: 0.75rem; font-weight: 700; color: var(--muted);
-    text-transform: uppercase; letter-spacing: 0.05em;
+    font-size: 0.72rem; font-weight: 700; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.06em;
   }
   .ranking-row {
     display: grid;
-    grid-template-columns: 52px 1fr 110px 110px 130px 120px;
+    grid-template-columns: 52px 1fr 110px 110px 140px 120px;
     padding: 16px 20px;
     border-bottom: 1px solid var(--border);
     align-items: center;
     cursor: pointer;
-    transition: background 0.18s;
+    transition: background 0.15s;
     position: relative;
   }
   .ranking-row:last-child { border-bottom: none; }
-  .ranking-row:hover { background: rgba(108,92,231,0.04); }
-  .ranking-row.open   { background: rgba(108,92,231,0.06); }
+  .ranking-row:hover { background: #F4EEFF; }
+  .ranking-row.open  { background: #F2E8FF; }
 
   /* Rang badge */
   .rang-badge {
@@ -58,16 +81,16 @@
     display: flex; align-items: center; justify-content: center;
     font-size: 0.78rem; font-weight: 800;
   }
-  .rang-1 { background: #FEF3C7; color: #92400E; border: 2px solid #F59E0B; }
-  .rang-2 { background: #F1F5F9; color: #475569; border: 2px solid #94A3B8; }
-  .rang-3 { background: #FEF2F2; color: #92220F; border: 2px solid #FCA5A5; }
+  .rang-1 { background: #E8D5FF; color: #3B1F7A; border: 2px solid #C29BFF; }
+  .rang-2 { background: #F1F5F9; color: #475569; border: 2px solid #D5DDE6; }
+  .rang-3 { background: #EFE7FF; color: #3B1F7A; border: 2px solid #BFA6FF; }
   .rang-n { background: var(--bg); color: var(--muted); border: 2px solid var(--border); }
 
-  /* Nom + fichier */
+  /* Nom */
   .cand-name { font-size: 0.9rem; font-weight: 700; color: var(--text); margin-bottom: 2px; }
   .cand-file { font-size: 0.75rem; color: var(--muted); }
 
-  /* Score global inline */
+  /* Score global */
   .score-pill {
     font-size: 1rem; font-weight: 800; letter-spacing: -0.5px;
     text-align: center;
@@ -78,74 +101,44 @@
     display: inline-flex; padding: 4px 11px; border-radius: 20px;
     font-size: 0.75rem; font-weight: 700;
   }
-  .niv-excellent  { background: rgba(16,185,129,0.1);  color: #059669; border: 1px solid rgba(16,185,129,0.25); }
-  .niv-bon        { background: rgba(108,92,231,0.1);  color: var(--accent); border: 1px solid rgba(108,92,231,0.25); }
-  .niv-partiel    { background: rgba(245,158,11,0.1);  color: #B45309; border: 1px solid rgba(245,158,11,0.25); }
-  .niv-insuffisant{ background: rgba(239,68,68,0.1);   color: #DC2626; border: 1px solid rgba(239,68,68,0.25); }
+  .niv-excellent   { background: #E7F0FF; color: #1E3A8A; border: 1px solid #BBD0FF; }
+  .niv-bon         { background: #EFE7FF; color: #4C1D95; border: 1px solid #D7C1FF; }
+  .niv-partiel     { background: #FFF5E6; color: #92400E; border: 1px solid #FDE68A; }
+  .niv-insuffisant { background: #FEE2E2; color: #991B1B; border: 1px solid #FCA5A5; }
 
-  /* Mini bars dans la colonne scores */
+  /* Mini bars */
   .mini-bars { display: flex; flex-direction: column; gap: 3px; }
   .mini-bar-row { display: flex; align-items: center; gap: 5px; }
-  .mini-bar-track { flex: 1; height: 5px; background: var(--bg); border-radius: 3px; overflow: hidden; min-width: 60px; }
+  .mini-bar-track { flex: 1; height: 5px; background: #F1F5F9; border-radius: 3px; overflow: hidden; min-width: 60px; }
   .mini-bar-fill  { height: 100%; border-radius: 3px; }
   .mini-bar-label { font-size: 0.62rem; color: var(--muted); width: 22px; text-align: right; font-weight: 600; }
 
-  /* Chevron */
-  .row-chevron {
-    display: flex; justify-content: center; align-items: center;
-    color: var(--muted); font-size: 0.75rem; transition: transform 0.3s ease;
-  }
-  .ranking-row.open .row-chevron { transform: rotate(180deg); color: var(--accent); }
+  .bar-purple { background: var(--enterprise-violet-dark); }
 
   /* ── Panneau détail ── */
   .detail-panel {
     display: none;
-    border-top: 2px solid rgba(108,92,231,0.15);
-    background: var(--bg);
+    border-top: 2px solid #E8D5FF;
+    background: #FFFFFF;
     padding: 28px 28px 24px;
-    animation: slideDown 0.3s ease;
+    animation: slideDown 0.25s ease;
   }
   @keyframes slideDown {
-    from { opacity: 0; transform: translateY(-8px); }
+    from { opacity: 0; transform: translateY(-6px); }
     to   { opacity: 1; transform: translateY(0); }
   }
   .detail-panel.open { display: block; }
 
-  /* Profil alert */
-  .profil-alert {
-    border-radius: var(--radius); padding: 15px 18px; margin-bottom: 22px;
-    display: flex; gap: 12px; align-items: flex-start;
-  }
-  .profil-alert.excellent  { background: #EEFAF5; border: 1px solid #00B894; }
-  .profil-alert.bon        { background: #EEF4FF; border: 1px solid #6C5CE7; }
-  .profil-alert.moyen      { background: #FFF9EC; border: 1px solid #F5C842; }
-  .profil-alert.insuffisant{ background: #FFF0F0; border: 1px solid #D63031; }
-  .profil-alert-icon {
-    width: 26px; height: 26px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 0.8rem; flex-shrink: 0; color: white; margin-top: 1px;
-  }
-  .excellent  .profil-alert-icon { background: #00B894; }
-  .bon        .profil-alert-icon { background: #6C5CE7; }
-  .moyen      .profil-alert-icon { background: #F5C842; }
-  .insuffisant .profil-alert-icon { background: #D63031; }
-  .profil-alert h4 { font-size: 0.88rem; font-weight: 700; margin-bottom: 3px; }
-  .excellent  h4 { color: #00875A; }
-  .bon        h4 { color: #4A3AB5; }
-  .moyen      h4 { color: #B8860B; }
-  .insuffisant h4 { color: #B71C1C; }
-  .profil-alert p { font-size: 0.82rem; line-height: 1.5; color: #555; }
-
-  /* Scores grid dans detail */
+  /* Skills grid */
   .scores-grid {
     display: grid; grid-template-columns: 1fr 1.5fr;
-    gap: 18px; margin-bottom: 18px;
+    gap: 16px; margin-bottom: 16px;
   }
   .donut-card {
-    background: var(--white); border: 1px solid var(--border);
-    border-radius: var(--radius); padding: 24px 20px;
-    box-shadow: var(--shadow-sm);
-    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;
+    background: #fff; border: 1px solid var(--border);
+    border-radius: 12px; padding: 22px 18px;
+    box-shadow: var(--shadow);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
   }
   .donut-wrap { position: relative; width: 120px; height: 120px; }
   .donut-wrap svg { transform: rotate(-90deg); }
@@ -158,29 +151,28 @@
   .donut-label { font-size: 0.88rem; font-weight: 700; color: var(--text); }
 
   .bars-card {
-    background: var(--white); border: 1px solid var(--border);
-    border-radius: var(--radius); padding: 20px 22px; box-shadow: var(--shadow-sm);
+    background: #fff; border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px 22px; box-shadow: var(--shadow);
     display: flex; flex-direction: column; gap: 14px; justify-content: center;
   }
   .bar-row { display: flex; flex-direction: column; gap: 5px; }
   .bar-header { display: flex; justify-content: space-between; align-items: center; }
   .bar-name { font-size: 0.82rem; font-weight: 600; color: var(--text); }
   .bar-val  { font-size: 0.78rem; font-weight: 700; color: var(--muted); }
-  .bar-track { height: 7px; background: var(--bg); border-radius: 4px; overflow: hidden; }
+  .bar-track { height: 7px; background: #F1F5F9; border-radius: 4px; overflow: hidden; }
   .bar-fill  { height: 100%; border-radius: 4px; }
   .bar-blue   { background: #3B82F6; }
   .bar-amber  { background: #F59E0B; }
   .bar-green  { background: #10B981; }
-  .bar-purple { background: var(--accent); }
+  .bar-purple { background: var(--enterprise-violet-dark); }
 
-  /* Skills + Points dans detail */
   .detail-bottom-grid {
     display: grid; grid-template-columns: 1fr 1fr;
-    gap: 18px;
+    gap: 16px;
   }
   .detail-card {
-    background: var(--white); border: 1px solid var(--border);
-    border-radius: var(--radius); padding: 18px 20px; box-shadow: var(--shadow-sm);
+    background: #fff; border: 1px solid var(--border);
+    border-radius: 12px; padding: 18px 20px; box-shadow: var(--shadow);
   }
   .detail-card-title {
     display: flex; align-items: center; gap: 7px;
@@ -188,68 +180,90 @@
   }
   .skill-tags { display: flex; flex-wrap: wrap; gap: 7px; }
   .skill-tag { padding: 4px 11px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
-  .tag-green { background: rgba(16,185,129,0.1); color: #059669; border: 1px solid rgba(16,185,129,0.25); }
-  .tag-red   { background: rgba(239,68,68,0.1);  color: #DC2626; border: 1px solid rgba(239,68,68,0.25); }
+  .tag-green { background: #E7D5FF; color: #4C1D95; border: 1px solid #D7C1FF; }
+  .tag-red   { background: #FEE2E2; color: #991B1B; border: 1px solid #FCA5A5; }
   .tag-empty { font-size: 0.8rem; color: var(--muted); }
-  .points-list { list-style: none; display: flex; flex-direction: column; gap: 6px; }
-  .points-list li { font-size: 0.81rem; color: #555; line-height: 1.4; }
 
-  /* Actions */
-  .actions-bar { display: flex; gap: 12px; align-items: center; margin-top: 8px; }
+  .actions-bar { display: flex; gap: 10px; align-items: center; margin-top: 8px; }
 
-  /* Offre title bar */
-  .offre-bar {
-    display: flex; align-items: center; gap: 12px;
-    background: var(--white); border: 1px solid var(--border);
-    border-radius: var(--radius); padding: 14px 20px;
-    box-shadow: var(--shadow-sm); margin-bottom: 20px;
+  /* Profil alert */
+  .profil-alert {
+    border-radius: 12px; padding: 15px 18px; margin-bottom: 22px;
+    display: flex; gap: 12px; align-items: flex-start;
+    background: #F2E8FF; border: 1px solid #D7C1FF;
   }
-  .offre-bar-icon {
-    width: 38px; height: 38px; border-radius: 10px;
-    background: linear-gradient(135deg, var(--accent), #8B5CF6);
+  .profil-alert-icon {
+    width: 26px; height: 26px; border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
-    color: white; font-size: 0.95rem; flex-shrink: 0;
+    font-size: 0.8rem; flex-shrink: 0; color: #fff; margin-top: 1px;
+    background: #BFA6FF;
   }
-  .offre-bar-info { flex: 1; min-width: 0; }
-  .offre-bar-label { font-size: 0.72rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
-  .offre-bar-title { font-size: 1rem; font-weight: 800; color: var(--text); }
-  .offre-bar-count { font-size: 0.8rem; font-weight: 700; color: var(--accent);
-    background: rgba(108,92,231,0.1); padding: 4px 12px; border-radius: 20px; flex-shrink: 0; }
+
+  .matching-empty {
+    text-align: center; padding: 72px 20px;
+  }
+  .matching-empty i { font-size: 2.5rem; color: #CBD5E1; margin-bottom: 14px; display: block; }
+  .matching-empty p { font-size: 0.9rem; color: var(--muted); margin-bottom: 6px; }
+
+  /* Chevron */
+  .row-chevron {
+    display: flex; justify-content: center; align-items: center;
+    color: var(--muted); font-size: 0.75rem; transition: transform 0.3s ease;
+  }
+  .ranking-row.open .row-chevron { transform: rotate(180deg); color: var(--enterprise-violet-dark); }
 </style>
 {% endblock %}
 
 {% block content %}
 
-<!-- Header -->
-<div class="page-header">
-  <div>
-    <div class="page-title">Résultats du matching <span>IA</span></div>
-    <div style="font-size:0.82rem; color:var(--muted); margin-top:3px;">Cliquez sur un candidat pour voir son analyse complète</div>
-  </div>
-  <a href="/matching" class="btn-launch-top">
-    <i class="fa-solid fa-wand-magic-sparkles"></i> Nouveau matching
-  </a>
+<!-- ── Breadcrumb ── -->
+<div class="breadcrumb">
+  <a href="/entreprise/dashboard"><i class="fa-solid fa-table-columns"></i> Tableau de bord</a>
+  <i class="fa-solid fa-chevron-right"></i>
+  <a href="/entreprise/offres">Offres d'emploi</a>
+  <i class="fa-solid fa-chevron-right"></i>
+  <span>Matching IA</span>
 </div>
 
-<!-- Offre concernée -->
+<!-- ── Page header ── -->
+<div class="page-header">
+  <div>
+    <div class="page-header-label">Intelligence Artificielle</div>
+    <h1>Résultats du matching</h1>
+    <p>Classement des candidats par score IA — cliquez sur un candidat pour voir son analyse.</p>
+  </div>
+</div>
+
+<!-- ── Offre bar ── -->
 <div class="offre-bar">
   <div class="offre-bar-icon"><i class="fa-solid fa-briefcase"></i></div>
   <div class="offre-bar-info">
     <div class="offre-bar-label">Offre analysée</div>
     <div class="offre-bar-title">{{ offre.titre }}</div>
+    <div class="offre-bar-meta">
+      {% if offre.type_contrat %}<span style="margin-right:12px;"><i class="fa-solid fa-file-contract" style="margin-right:4px;"></i>{{ offre.type_contrat }}</span>{% endif %}
+      {% if offre.localisation %}<span><i class="fa-solid fa-location-dot" style="margin-right:4px;"></i>{{ offre.localisation }}</span>{% endif %}
+    </div>
   </div>
-  <div class="offre-bar-count">{{ candidats|length }} candidat{{ 's' if candidats|length > 1 }}</div>
+  <div class="offre-bar-count">
+    <i class="fa-solid fa-users" style="margin-right:5px;"></i>
+    {{ candidats|length }} candidat{{ 's' if candidats|length > 1 else '' }}
+  </div>
 </div>
 
-<!-- Tableau classement -->
+<!-- ── Contenu principal ── -->
+{% if candidats %}
+
 <div class="ranking-table">
+
+  <!-- En-tête -->
   <div class="ranking-head">
     <div>Rang</div>
     <div>Candidat</div>
     <div style="text-align:center;">Score</div>
     <div style="text-align:center;">Niveau</div>
     <div>Détail scores</div>
-    <div style="text-align:center;">Infos</div>
+    <div style="text-align:center;"></div>
   </div>
 
   {% for c in candidats %}
@@ -268,17 +282,17 @@
     <!-- Nom -->
     <div>
       <div class="cand-name">{{ c.nom_candidat }}</div>
-      <div class="cand-file"><i class="fa-regular fa-file-pdf" style="color:#EF4444; margin-right:3px;"></i>{{ c.fichier }}</div>
+      <div class="cand-file"><i class="fa-regular fa-file-pdf" style="color:#EF4444;margin-right:3px;"></i>{{ c.fichier }}</div>
     </div>
 
     <!-- Score global -->
     <div>
       <div class="score-pill" style="
         {% if s >= 75 %}color:#10B981;
-        {% elif s >= 50 %}color:var(--accent);
+        {% elif s >= 50 %}color:#4F46E5;
         {% elif s >= 30 %}color:#F59E0B;
         {% else %}color:#EF4444;{% endif %}">
-        {{ s }}<span style="font-size:0.65rem; font-weight:600; color:var(--muted);">/100</span>
+        {{ s }}<span style="font-size:0.65rem;font-weight:600;color:var(--muted);">/100</span>
       </div>
     </div>
 
@@ -321,44 +335,52 @@
   <!-- Panneau détail caché -->
   <div class="detail-panel" id="detail-{{ loop.index0 }}">
 
-    <!-- Alert profil -->
     {% if s >= 75 %}
       <div class="profil-alert excellent">
         <div class="profil-alert-icon"><i class="fa-solid fa-check"></i></div>
-        <div><h4>Excellent profil</h4><p>Le candidat présente un profil très bien aligné avec le poste. Ses compétences, sa formation et son expérience répondent aux exigences. Un entretien est fortement recommandé.</p></div>
+        <div>
+          <h4>Excellent profil</h4>
+          <p>Le candidat présente un profil très bien aligné avec le poste. Un entretien est fortement recommandé.</p>
+        </div>
       </div>
     {% elif s >= 60 %}
       <div class="profil-alert bon">
         <div class="profil-alert-icon"><i class="fa-solid fa-thumbs-up"></i></div>
-        <div><h4>Bon profil</h4><p>Le candidat possède de solides compétences techniques et une formation adaptée. Quelques lacunes mineures peuvent être comblées en poste.</p></div>
+        <div>
+          <h4>Bon profil</h4>
+          <p>Le candidat possède de solides compétences. Quelques lacunes peuvent être comblées en poste.</p>
+        </div>
       </div>
     {% elif s >= 40 %}
       <div class="profil-alert moyen">
         <div class="profil-alert-icon"><i class="fa-solid fa-exclamation"></i></div>
-        <div><h4>Profil moyen</h4><p>Bien que le candidat ait une solide formation et de nombreuses compétences techniques, il lui manque une expérience directe dans le domaine. Une position de stage ou un poste junior peut lui convenir.</p></div>
+        <div>
+          <h4>Profil moyen</h4>
+          <p>Formation correcte, expérience limitée dans le domaine.</p>
+        </div>
       </div>
     {% else %}
       <div class="profil-alert insuffisant">
         <div class="profil-alert-icon"><i class="fa-solid fa-xmark"></i></div>
-        <div><h4>Profil insuffisant</h4><p>Le profil ne correspond pas suffisamment aux exigences du poste. Des compétences clés et une expérience professionnelle significative font défaut.</p></div>
+        <div>
+          <h4>Profil insuffisant</h4>
+          <p>Le profil ne correspond pas suffisamment aux exigences du poste.</p>
+        </div>
       </div>
     {% endif %}
 
-    <!-- Scores détaillés -->
     <div class="scores-grid">
       <div class="donut-card">
         <div class="donut-wrap">
           {% set circumference = 339.3 %}
           {% set dash = (s / 100 * circumference) | round(1) %}
           {% if s >= 75 %}{% set dc = '#10B981' %}
-          {% elif s >= 50 %}{% set dc = '#6C5CE7' %}
+          {% elif s >= 50 %}{% set dc = '#4F46E5' %}
           {% elif s >= 30 %}{% set dc = '#F59E0B' %}
           {% else %}{% set dc = '#EF4444' %}{% endif %}
           <svg width="120" height="120" viewBox="0 0 120 120">
-            <circle cx="60" cy="60" r="50" fill="none" stroke="#EEF0F8" stroke-width="11"/>
-            <circle cx="60" cy="60" r="50" fill="none"
-              stroke="{{ dc }}" stroke-width="11" stroke-linecap="round"
-              stroke-dasharray="{{ dash }} {{ circumference }}"/>
+            <circle cx="60" cy="60" r="50" fill="none" stroke="#E8F2EC" stroke-width="11"/>
+            <circle cx="60" cy="60" r="50" fill="none" stroke="{{ dc }}" stroke-width="11" stroke-linecap="round" stroke-dasharray="{{ dash }} {{ circumference }}"/>
           </svg>
           <div class="donut-center">
             <span class="donut-score" style="color:{{ dc }};">{{ s }}</span>
@@ -388,25 +410,37 @@
       </div>
     </div>
 
-    <!-- Compétences + Points -->
     <div class="detail-bottom-grid">
       <div class="detail-card">
-        <div class="detail-card-title"><i class="fa-solid fa-circle-check" style="color:#10B981;"></i> Compétences correspondantes</div>
+        <div class="detail-card-title">
+          <i class="fa-solid fa-circle-check" style="color:#10B981;"></i>
+          Compétences correspondantes
+        </div>
         <div class="skill-tags">
           {% if c.competences_trouvees %}
-            {% for kw in c.competences_trouvees %}<span class="skill-tag tag-green">{{ kw }}</span>{% endfor %}
-          {% else %}<span class="tag-empty">Aucune compétence correspondante détectée.</span>{% endif %}
+            {% for kw in c.competences_trouvees %}
+              <span class="skill-tag tag-green">{{ kw }}</span>
+            {% endfor %}
+          {% else %}
+            <span class="tag-empty">Aucune compétence correspondante détectée.</span>
+          {% endif %}
         </div>
       </div>
       <div class="detail-card">
-        <div class="detail-card-title"><i class="fa-solid fa-circle-xmark" style="color:#EF4444;"></i> Compétences manquantes</div>
+        <div class="detail-card-title">
+          <i class="fa-solid fa-circle-xmark" style="color:#EF4444;"></i>
+          Compétences manquantes
+        </div>
         <div class="skill-tags">
           {% if c.competences_manquantes %}
-            {% for kw in c.competences_manquantes %}<span class="skill-tag tag-red">{{ kw }}</span>{% endfor %}
-          {% else %}<span class="tag-empty">Aucune compétence manquante majeure.</span>{% endif %}
+            {% for kw in c.competences_manquantes %}
+              <span class="skill-tag tag-red">{{ kw }}</span>
+            {% endfor %}
+          {% else %}
+            <span class="tag-empty">Aucune compétence manquante majeure.</span>
+          {% endif %}
         </div>
       </div>
-      
     </div>
 
   </div><!-- fin .detail-panel -->
@@ -414,12 +448,33 @@
 
 </div><!-- fin .ranking-table -->
 
-<!-- Actions -->
-<div class="actions-bar">
-  <a href="/matching" class="btn btn-ghost">← Nouveau matching</a>
-  <a href="/dashboard" class="btn btn-primary">Tableau de bord</a>
+{% else %}
+
+<div class="card">
+  <div class="matching-empty">
+    <i class="fa-solid fa-brain"></i>
+    <p style="font-weight:600;color:var(--text);">Aucun résultat de matching disponible</p>
+    <p>Les candidats ayant postulé à cette offre n'ont pas encore été analysés.</p>
+    <a href="/entreprise/matching" class="btn btn-primary" ...>
+      <i class="fa-solid fa-wand-magic-sparkles"></i> Lancer l'analyse IA
+    </a>
+  </div>
 </div>
 
+{% endif %}
+
+<div class="actions-bar">
+  <a href="/entreprise/offres" class="btn btn-ghost">
+    <i class="fa-solid fa-arrow-left"></i> Retour aux offres
+  </a>
+  <a href="/entreprise/dashboard" class="btn btn-ghost">
+    <i class="fa-solid fa-table-columns"></i> Tableau de bord
+  </a>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
 <script>
   function toggleDetail(idx) {
     var panel  = document.getElementById('detail-' + idx);
@@ -433,7 +488,6 @@
     if (!isOpen) {
       panel.classList.add('open');
       row.classList.add('open');
-      // Scroll doux vers la ligne
       setTimeout(function() {
         row.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 50);
@@ -441,3 +495,4 @@
   }
 </script>
 {% endblock %}
+

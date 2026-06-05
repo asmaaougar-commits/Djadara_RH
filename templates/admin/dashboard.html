@@ -1,0 +1,113 @@
+{% extends "admin/base.html" %}
+{% block title %}Dashboard — Djadara RH Admin{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <div class="eyebrow">Vue d'ensemble</div>
+    <h1>Tableau de bord</h1>
+    <p>Bienvenue, Administrateur · Djadara RH</p>
+  </div>
+  <a class="btn btn-accent" href="{{ url_for('admin_stats') }}">
+    <i class="fa-solid fa-chart-bar"></i> Statistiques
+  </a>
+</div>
+
+<!-- KPI Cards -->
+<div style="max-width:1000px; display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:28px;">
+
+  <div class="card" style="padding:20px 22px;">
+    <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+      <div style="width:36px;height:36px;background:#EAF3DE;border-radius:9px;display:flex;align-items:center;justify-content:center;">
+        <i class="fa-regular fa-user" style="color:#3B6D11;font-size:15px;"></i>
+      </div>
+      <span style="font-size:12px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#6B7280;">Candidats</span>
+    </div>
+    <div style="font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;color:#0D1117;">{{ nb_candidats }}</div>
+  </div>
+
+  <div class="card" style="padding:20px 22px;">
+    <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+      <div style="width:36px;height:36px;background:#E6F1FB;border-radius:9px;display:flex;align-items:center;justify-content:center;">
+        <i class="fa-regular fa-building" style="color:#185FA5;font-size:15px;"></i>
+      </div>
+      <span style="font-size:12px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#6B7280;">Entreprises</span>
+    </div>
+    <div style="font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;color:#0D1117;">{{ nb_entreprises }}</div>
+  </div>
+
+  <div class="card" style="padding:20px 22px;">
+    <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+      <div style="width:36px;height:36px;background:#FAEEDA;border-radius:9px;display:flex;align-items:center;justify-content:center;">
+        <i class="fa-regular fa-file-lines" style="color:#854F0B;font-size:15px;"></i>
+      </div>
+      <span style="font-size:12px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#6B7280;">Offres actives</span>
+    </div>
+    <div style="font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;color:#0D1117;">{{ nb_offres_actives }}</div>
+    <div style="font-size:12px;color:#6B7280;margin-top:4px;">sur {{ nb_offres }} au total</div>
+  </div>
+
+  <div class="card" style="padding:20px 22px;">
+    <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+      <div style="width:36px;height:36px;background:#FBEAF0;border-radius:9px;display:flex;align-items:center;justify-content:center;">
+        <i class="fa-solid fa-paper-plane" style="color:#993556;font-size:15px;"></i>
+      </div>
+      <span style="font-size:12px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#6B7280;">Candidatures</span>
+    </div>
+    <div style="font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;color:#0D1117;">{{ nb_candidatures }}</div>
+  </div>
+
+  <div class="card" style="padding:20px 22px;">
+    <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+      <div style="width:36px;height:36px;background:#E1F5EE;border-radius:9px;display:flex;align-items:center;justify-content:center;">
+        <i class="fa-regular fa-calendar" style="color:#0F6E56;font-size:15px;"></i>
+      </div>
+      <span style="font-size:12px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#6B7280;">Entretiens</span>
+    </div>
+    <div style="font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;color:#0D1117;">{{ nb_entretiens }}</div>
+  </div>
+
+  <div class="card" style="padding:20px 22px;">
+    <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+      <div style="width:36px;height:36px;background:#EAF3DE;border-radius:9px;display:flex;align-items:center;justify-content:center;">
+        <i class="fa-solid fa-brain" style="color:#3B6D11;font-size:15px;"></i>
+      </div>
+      <span style="font-size:12px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#6B7280;">Score moyen IA</span>
+    </div>
+    <div style="font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;color:#0D1117;">{{ score_moyen }}<span style="font-size:1rem;color:#6B7280;">/100</span></div>
+  </div>
+
+</div>
+
+<!-- Raccourcis -->
+<div style="max-width:1000px;">
+  <h2 style="font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:700;margin-bottom:14px;">Accès rapide</h2>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
+
+    <a href="{{ url_for('admin_candidats') }}" class="card" style="padding:18px 20px;text-decoration:none;display:flex;align-items:center;gap:14px;transition:box-shadow 0.18s;" onmouseover="this.style.boxShadow='0 4px 16px rgba(0,0,0,0.08)'" onmouseout="this.style.boxShadow='none'">
+      <i class="fa-regular fa-user" style="font-size:1.2rem;color:#6B7280;"></i>
+      <div>
+        <div style="font-weight:700;font-size:0.9rem;color:#0D1117;">Gérer candidats</div>
+        <div style="font-size:0.78rem;color:#6B7280;">Activer / désactiver</div>
+      </div>
+    </a>
+
+    <a href="{{ url_for('admin_entreprises') }}" class="card" style="padding:18px 20px;text-decoration:none;display:flex;align-items:center;gap:14px;transition:box-shadow 0.18s;" onmouseover="this.style.boxShadow='0 4px 16px rgba(0,0,0,0.08)'" onmouseout="this.style.boxShadow='none'">
+      <i class="fa-regular fa-building" style="font-size:1.2rem;color:#6B7280;"></i>
+      <div>
+        <div style="font-weight:700;font-size:0.9rem;color:#0D1117;">Gérer entreprises</div>
+        <div style="font-size:0.78rem;color:#6B7280;">Activer / désactiver</div>
+      </div>
+    </a>
+
+    <a href="{{ url_for('admin_offres') }}" class="card" style="padding:18px 20px;text-decoration:none;display:flex;align-items:center;gap:14px;transition:box-shadow 0.18s;" onmouseover="this.style.boxShadow='0 4px 16px rgba(0,0,0,0.08)'" onmouseout="this.style.boxShadow='none'">
+      <i class="fa-regular fa-file-lines" style="font-size:1.2rem;color:#6B7280;"></i>
+      <div>
+        <div style="font-weight:700;font-size:0.9rem;color:#0D1117;">Gérer offres</div>
+        <div style="font-size:0.78rem;color:#6B7280;">Supprimer les offres</div>
+      </div>
+    </a>
+
+  </div>
+</div>
+{% endblock %}

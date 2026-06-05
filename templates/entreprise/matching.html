@@ -1,0 +1,661 @@
+{% extends "entreprise/base.html" %}
+{% block title %}Matching IA — Djadara RH{% endblock %}
+
+{% block head %}
+<style>
+  /* ── Sélecteur offre ── */
+  .offre-selector {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 22px 28px;
+    box-shadow: var(--shadow);
+    margin-bottom: 28px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .offre-selector label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--orange);
+    white-space: nowrap;
+  }
+  .offre-selector select {
+    flex: 1;
+    min-width: 220px;
+    padding: 11px 16px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9rem;
+    color: var(--text);
+    background: #FAFAFA;
+    outline: none;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748B' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 36px;
+  }
+  .offre-selector select:focus { border-color: var(--green); background-color: #fff; }
+
+  .offre-info-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 16px;
+    background: #EEF4F1;
+    border-radius: 10px;
+    white-space: nowrap;
+  }
+  .offre-info-bar .count {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--green);
+  }
+
+  /* ── Tableau classement ── */
+  .ranking-table {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+
+  .ranking-head {
+    display: grid;
+    grid-template-columns: 56px 1fr 100px 130px 160px 44px;
+    padding: 12px 22px;
+    background: #F8FAFB;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .ranking-row {
+    display: grid;
+    grid-template-columns: 56px 1fr 100px 130px 160px 44px;
+    padding: 16px 22px;
+    border-bottom: 1px solid var(--border);
+    align-items: center;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .ranking-row:last-of-type { border-bottom: none; }
+  .ranking-row:hover { background: #F0F7F3; }
+  .ranking-row.open  { background: #E8F5EE; }
+
+  /* Rang badge */
+  .rang-badge {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.8rem; font-weight: 800;
+  }
+  .rang-1 { background: #FEF3C7; color: #92400E; border: 2px solid #FDE68A; }
+  .rang-2 { background: #F1F5F9; color: #475569; border: 2px solid #CBD5E1; }
+  .rang-3 { background: #FEE2E2; color: #9A3412; border: 2px solid #FCA5A5; }
+  .rang-n { background: var(--bg); color: var(--muted); border: 2px solid var(--border); }
+
+  /* Candidat info */
+  .cand-name { font-size: 0.92rem; font-weight: 700; color: var(--text); }
+  .cand-meta { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
+
+  /* Score global */
+  .score-pill {
+    font-size: 1.05rem;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    text-align: center;
+  }
+
+  /* Niveau badge */
+  .niveau-badge {
+    display: inline-flex;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+  .niv-excellent   { background: #D1FAE5; color: #065F46; }
+  .niv-bon         { background: #EEF4F1; color: #1D4535; }
+  .niv-partiel     { background: #FEF3C7; color: #92400E; }
+  .niv-insuffisant { background: #FEE2E2; color: #991B1B; }
+
+  /* Mini bars */
+  .mini-bars { display: flex; flex-direction: column; gap: 4px; }
+  .mini-bar-row { display: flex; align-items: center; gap: 6px; }
+  .mini-bar-track { flex: 1; height: 5px; background: #F1F5F9; border-radius: 3px; overflow: hidden; }
+  .mini-bar-fill  { height: 100%; border-radius: 3px; }
+  .mini-bar-val   { font-size: 0.62rem; color: var(--muted); width: 22px; text-align: right; font-weight: 600; }
+  .bar-blue   { background: #3B82F6; }
+  .bar-amber  { background: #F59E0B; }
+  .bar-green  { background: #10B981; }
+  .bar-purple { background: #8B5CF6; }
+
+  /* Chevron */
+  .row-chevron {
+    display: flex; align-items: center; justify-content: center;
+    color: var(--muted); font-size: 0.75rem;
+    transition: transform 0.25s ease;
+  }
+  .ranking-row.open .row-chevron { transform: rotate(180deg); color: var(--green); }
+
+  /* ── Panneau détail ── */
+  .detail-panel {
+    display: none;
+    border-top: 2px solid #D1FAE5;
+    background: #FAFFFE;
+    padding: 28px 32px 26px;
+    animation: slideDown 0.22s ease;
+  }
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .detail-panel.open { display: block; }
+
+  /* Alert profil */
+  .profil-alert {
+    display: flex; gap: 12px; align-items: flex-start;
+    padding: 14px 18px; border-radius: 12px;
+    margin-bottom: 22px;
+  }
+  .profil-alert.excellent   { background: #D1FAE5; border: 1px solid #6EE7B7; }
+  .profil-alert.bon         { background: #EEF4F1; border: 1px solid #A7D5B8; }
+  .profil-alert.moyen       { background: #FEF3C7; border: 1px solid #FDE68A; }
+  .profil-alert.insuffisant { background: #FEE2E2; border: 1px solid #FCA5A5; }
+  .alert-icon {
+    width: 28px; height: 28px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.82rem; color: #fff; flex-shrink: 0;
+  }
+  .alert-icon.excellent   { background: #10B981; }
+  .alert-icon.bon         { background: #1D4535; }
+  .alert-icon.moyen       { background: #F59E0B; }
+  .alert-icon.insuffisant { background: #EF4444; }
+  .alert-text h4 { font-size: 0.9rem; font-weight: 700; color: var(--text); margin-bottom: 3px; }
+  .alert-text p  { font-size: 0.82rem; color: var(--muted); line-height: 1.5; }
+
+  /* Scores grid */
+  .detail-scores-grid {
+    display: grid;
+    grid-template-columns: 160px 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .donut-card {
+    background: #fff; border: 1px solid var(--border);
+    border-radius: 14px; padding: 22px 14px;
+    box-shadow: var(--shadow);
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+  }
+  .donut-wrap { position: relative; width: 110px; height: 110px; }
+  .donut-wrap svg { transform: rotate(-90deg); }
+  .donut-center {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+  }
+  .donut-score { font-size: 1.75rem; font-weight: 800; letter-spacing: -1px; line-height: 1; }
+  .donut-denom { font-size: 0.7rem; color: var(--muted); font-weight: 600; }
+  .donut-label { font-size: 0.82rem; font-weight: 700; color: var(--text); }
+
+  .bars-card {
+    background: #fff; border: 1px solid var(--border);
+    border-radius: 14px; padding: 20px 22px;
+    box-shadow: var(--shadow);
+    display: flex; flex-direction: column; gap: 14px; justify-content: center;
+  }
+  .bar-row { display: flex; flex-direction: column; gap: 5px; }
+  .bar-header { display: flex; justify-content: space-between; align-items: center; }
+  .bar-name { font-size: 0.82rem; font-weight: 600; color: var(--text); }
+  .bar-val  { font-size: 0.78rem; font-weight: 700; color: var(--muted); }
+  .bar-track { height: 7px; background: #F1F5F9; border-radius: 4px; overflow: hidden; }
+  .bar-fill  { height: 100%; border-radius: 4px; }
+
+  /* Compétences bottom grid */
+  .detail-bottom-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+  }
+  .detail-card {
+    background: #fff; border: 1px solid var(--border);
+    border-radius: 14px; padding: 18px 20px; box-shadow: var(--shadow);
+  }
+  .detail-card-title {
+    display: flex; align-items: center; gap: 7px;
+    font-size: 0.85rem; font-weight: 700; color: var(--text); margin-bottom: 12px;
+  }
+  .skill-tags { display: flex; flex-wrap: wrap; gap: 7px; }
+  .skill-tag { padding: 4px 11px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+  .tag-green { background: #D1FAE5; color: #065F46; }
+  .tag-red   { background: #FEE2E2; color: #991B1B; }
+  .tag-empty { font-size: 0.8rem; color: var(--muted); }
+
+  /* Points forts / améliorer */
+  .points-list { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+  .points-list li { font-size: 0.82rem; color: var(--muted); line-height: 1.4; display: flex; gap: 7px; }
+  .points-list li::before { content: '•'; color: var(--green); font-weight: 700; flex-shrink: 0; }
+  .points-list.bad li::before { color: #EF4444; }
+
+  /* Recalcul btn */
+  .btn-recalc {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 10px 20px; border-radius: 50px;
+    background: var(--green); color: #fff;
+    font-size: 0.82rem; font-weight: 700;
+    font-family: 'Inter', sans-serif;
+    border: none; cursor: pointer;
+    text-decoration: none;
+    transition: background 0.15s;
+  }
+  .btn-recalc:hover { background: var(--green-light); }
+
+  /* ── Empty state ── */
+  .matching-empty {
+    text-align: center; padding: 80px 20px;
+  }
+  .matching-empty i { font-size: 2.8rem; color: #CBD5E1; margin-bottom: 16px; display: block; }
+  .matching-empty h3 { font-size: 1.1rem; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+  .matching-empty p { font-size: 0.875rem; color: var(--muted); }
+
+  /* Statut candidature */
+  .statut-form { display: flex; gap: 8px; align-items: center; margin-top: 18px; flex-wrap: wrap; }
+  .statut-form select {
+    padding: 8px 12px; border: 1.5px solid var(--border);
+    border-radius: 8px; font-size: 0.82rem; font-family: 'Inter', sans-serif;
+    background: #FAFAFA; color: var(--text); outline: none; cursor: pointer;
+  }
+  .statut-form select:focus { border-color: var(--green); }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ── Header ── -->
+<div class="page-header">
+  <div>
+    <div class="page-header-label">Intelligence Artificielle</div>
+    <h1>Matching IA</h1>
+    <p>Classement automatique des candidats par score IA.</p>
+  </div>
+  {% if offre %}
+  <form method="POST" action="/entreprise/matching/{{ offre.id }}">
+    <button type="submit" class="btn-recalc">
+      <i class="fa-solid fa-rotate"></i> Recalculer les scores
+    </button>
+  </form>
+  {% endif %}
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div class="flash flash-{{ category }}">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
+<!-- ── Sélecteur d'offre ── -->
+<div class="offre-selector">
+  <label><i class="fa-solid fa-briefcase" style="margin-right:6px;"></i>Offre</label>
+  <select onchange="if(this.value) window.location='/entreprise/matching/'+this.value">
+    <option value="">— Sélectionner une offre —</option>
+    {% for o in offres %}
+      <option value="{{ o.id }}" {% if offre and offre.id == o.id %}selected{% endif %}>
+        {{ o.titre }}{% if o.nb_candidatures %} ({{ o.nb_candidatures }} candidat{{ 's' if o.nb_candidatures > 1 else '' }}){% endif %}
+      </option>
+    {% endfor %}
+  </select>
+  {% if offre %}
+    <div class="offre-info-bar">
+      <i class="fa-solid fa-users" style="color:var(--green);font-size:0.85rem;"></i>
+      <span class="count">{{ candidatures|length }} candidat{{ 's' if candidatures|length != 1 else '' }}</span>
+    </div>
+  {% endif %}
+</div>
+
+<!-- ── Contenu principal ── -->
+{% if not offre %}
+
+  <div class="card">
+    <div class="matching-empty">
+      <i class="fa-solid fa-brain"></i>
+      <h3>Sélectionnez une offre</h3>
+      <p>Choisissez une offre ci-dessus pour voir le classement IA de ses candidats.</p>
+    </div>
+  </div>
+
+{% elif candidatures %}
+
+  <div class="ranking-table">
+
+    <!-- En-tête -->
+    <div class="ranking-head">
+      <div>Rang</div>
+      <div>Candidat</div>
+      <div style="text-align:center;">Score</div>
+      <div style="text-align:center;">Niveau</div>
+      <div>Détail scores</div>
+      <div></div>
+    </div>
+
+    {% for c in candidatures %}
+    {% set s = c.score_global %}
+
+    <!-- Ligne cliquable -->
+    <div class="ranking-row" onclick="toggleDetail({{ loop.index0 }})"
+         id="row-{{ loop.index0 }}">
+
+      <!-- Rang -->
+      <div>
+        <div class="rang-badge {% if loop.index == 1 %}rang-1{% elif loop.index == 2 %}rang-2{% elif loop.index == 3 %}rang-3{% else %}rang-n{% endif %}">
+          {{ loop.index }}
+        </div>
+      </div>
+
+      <!-- Nom Prénom (depuis la table candidats, pas le nom de fichier) -->
+      <div>
+        <div class="cand-name">{{ c.prenom }} {{ c.nom }}</div>
+        <div class="cand-meta">
+          <i class="fa-regular fa-envelope" style="margin-right:3px;"></i>{{ c.email }}
+        </div>
+      </div>
+
+      <!-- Score global -->
+      <div>
+        <div class="score-pill" style="
+          {% if s >= 75 %}color:#10B981;
+          {% elif s >= 60 %}color:#1D4535;
+          {% elif s >= 40 %}color:#F59E0B;
+          {% else %}color:#EF4444;{% endif %}">
+          {{ s }}<span style="font-size:0.62rem;font-weight:600;color:var(--muted);">/100</span>
+        </div>
+      </div>
+
+      <!-- Niveau -->
+      <div>
+        <span class="niveau-badge
+          {% if c.niveau == 'Excellent' %}niv-excellent
+          {% elif c.niveau == 'Bon profil' %}niv-bon
+          {% elif c.niveau == 'Partiel' %}niv-partiel
+          {% else %}niv-insuffisant{% endif %}">
+          {{ c.niveau }}
+        </span>
+      </div>
+
+      <!-- Mini bars -->
+      <div class="mini-bars">
+        <div class="mini-bar-row">
+          <div class="mini-bar-track"><div class="mini-bar-fill bar-blue" style="width:{{ c.score_competences }}%"></div></div>
+          <div class="mini-bar-val">{{ c.score_competences }}</div>
+        </div>
+        <div class="mini-bar-row">
+          <div class="mini-bar-track"><div class="mini-bar-fill bar-amber" style="width:{{ c.score_experience }}%"></div></div>
+          <div class="mini-bar-val">{{ c.score_experience }}</div>
+        </div>
+        <div class="mini-bar-row">
+          <div class="mini-bar-track"><div class="mini-bar-fill bar-green" style="width:{{ c.score_formation }}%"></div></div>
+          <div class="mini-bar-val">{{ c.score_formation }}</div>
+        </div>
+        <div class="mini-bar-row">
+          <div class="mini-bar-track"><div class="mini-bar-fill bar-purple" style="width:{{ c.score_langues }}%"></div></div>
+          <div class="mini-bar-val">{{ c.score_langues }}</div>
+        </div>
+      </div>
+
+      <!-- Chevron -->
+      <div class="row-chevron"><i class="fa-solid fa-chevron-down"></i></div>
+
+    </div>
+
+    <!-- ── Panneau détail ── -->
+    <div class="detail-panel" id="detail-{{ loop.index0 }}">
+
+      <!-- Alert selon score -->
+      {% if s >= 75 %}
+        <div class="profil-alert excellent">
+          <div class="alert-icon excellent"><i class="fa-solid fa-check"></i></div>
+          <div class="alert-text">
+            <h4>Excellent profil</h4>
+            <p>{{ c.prenom }} {{ c.nom }} présente un profil très bien aligné avec le poste. Un entretien est fortement recommandé.</p>
+          </div>
+        </div>
+      {% elif s >= 60 %}
+        <div class="profil-alert bon">
+          <div class="alert-icon bon"><i class="fa-solid fa-thumbs-up"></i></div>
+          <div class="alert-text">
+            <h4>Bon profil</h4>
+            <p>{{ c.prenom }} {{ c.nom }} possède de solides compétences. Quelques lacunes peuvent être comblées en poste.</p>
+          </div>
+        </div>
+      {% elif s >= 40 %}
+        <div class="profil-alert moyen">
+          <div class="alert-icon moyen"><i class="fa-solid fa-exclamation"></i></div>
+          <div class="alert-text">
+            <h4>Profil moyen</h4>
+            <p>Formation correcte mais expérience limitée dans le domaine.</p>
+          </div>
+        </div>
+      {% else %}
+        <div class="profil-alert insuffisant">
+          <div class="alert-icon insuffisant"><i class="fa-solid fa-xmark"></i></div>
+          <div class="alert-text">
+            <h4>Profil insuffisant</h4>
+            <p>Le profil de {{ c.prenom }} {{ c.nom }} ne correspond pas suffisamment aux exigences du poste.</p>
+          </div>
+        </div>
+      {% endif %}
+
+      <!-- Score global + barres détaillées -->
+      <div class="detail-scores-grid">
+        <div class="donut-card">
+          {% set circumference = 314.2 %}
+          {% set dash = (s / 100 * circumference) | round(1) %}
+          {% if s >= 75 %}{% set dc = '#10B981' %}
+          {% elif s >= 60 %}{% set dc = '#1D4535' %}
+          {% elif s >= 40 %}{% set dc = '#F59E0B' %}
+          {% else %}{% set dc = '#EF4444' %}{% endif %}
+          <div class="donut-wrap">
+            <svg width="110" height="110" viewBox="0 0 110 110">
+              <circle cx="55" cy="55" r="46" fill="none" stroke="#E8F2EC" stroke-width="10"/>
+              <circle cx="55" cy="55" r="46" fill="none" stroke="{{ dc }}" stroke-width="10"
+                      stroke-linecap="round"
+                      stroke-dasharray="{{ dash }} {{ circumference }}"/>
+            </svg>
+            <div class="donut-center">
+              <span class="donut-score" style="color:{{ dc }};">{{ s }}</span>
+              <span class="donut-denom">/100</span>
+            </div>
+          </div>
+          <div class="donut-label">Score global</div>
+        </div>
+
+        <div class="bars-card">
+          <div class="bar-row">
+            <div class="bar-header">
+              <span class="bar-name">Compétences</span>
+              <span class="bar-val">{{ c.score_competences }}/100</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill bar-blue" style="width:{{ c.score_competences }}%"></div></div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-header">
+              <span class="bar-name">Expérience</span>
+              <span class="bar-val">{{ c.score_experience }}/100</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill bar-amber" style="width:{{ c.score_experience }}%"></div></div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-header">
+              <span class="bar-name">Formation</span>
+              <span class="bar-val">{{ c.score_formation }}/100</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill bar-green" style="width:{{ c.score_formation }}%"></div></div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-header">
+              <span class="bar-name">Langues</span>
+              <span class="bar-val">{{ c.score_langues }}/100</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill bar-purple" style="width:{{ c.score_langues }}%"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Compétences + points forts/améliorer -->
+      <div class="detail-bottom-grid">
+
+        <div class="detail-card">
+          <div class="detail-card-title">
+            <i class="fa-solid fa-circle-check" style="color:#10B981;"></i>
+            Compétences correspondantes
+          </div>
+          <div class="skill-tags">
+            {% set trouvees = [] %}
+            {% if c.competences_trouvees %}
+              {% if c.competences_trouvees is string %}
+                {% set trouvees = c.competences_trouvees | tojson | replace('"', '') | replace('[', '') | replace(']', '') %}
+              {% else %}
+                {% set trouvees = c.competences_trouvees %}
+              {% endif %}
+            {% endif %}
+            {% if trouvees %}
+              {# Try to iterate directly if it's already a list #}
+              {% if c.competences_trouvees is iterable and c.competences_trouvees is not string %}
+                {% for kw in c.competences_trouvees %}
+                  <span class="skill-tag tag-green">{{ kw }}</span>
+                {% endfor %}
+              {% else %}
+                <span class="tag-empty">{{ c.competences_trouvees }}</span>
+              {% endif %}
+            {% else %}
+              <span class="tag-empty">Aucune correspondance détectée.</span>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="detail-card">
+          <div class="detail-card-title">
+            <i class="fa-solid fa-circle-xmark" style="color:#EF4444;"></i>
+            Compétences manquantes
+          </div>
+          <div class="skill-tags">
+            {% if c.competences_manquantes is iterable and c.competences_manquantes is not string %}
+              {% for kw in c.competences_manquantes %}
+                <span class="skill-tag tag-red">{{ kw }}</span>
+              {% endfor %}
+            {% elif c.competences_manquantes %}
+              <span class="tag-empty">{{ c.competences_manquantes }}</span>
+            {% else %}
+              <span class="tag-empty">Aucune compétence manquante majeure.</span>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="detail-card">
+          <div class="detail-card-title">
+            <i class="fa-solid fa-star" style="color:#F59E0B;"></i>
+            Points forts
+          </div>
+          <ul class="points-list">
+            {% if c.points_forts is iterable and c.points_forts is not string %}
+              {% for pt in c.points_forts %}
+                <li>{{ pt }}</li>
+              {% endfor %}
+            {% elif c.points_forts %}
+              <li>{{ c.points_forts }}</li>
+            {% else %}
+              <li>Aucun point fort identifié.</li>
+            {% endif %}
+          </ul>
+        </div>
+
+        <div class="detail-card">
+          <div class="detail-card-title">
+            <i class="fa-solid fa-arrow-trend-up" style="color:#EF4444;"></i>
+            Points à améliorer 
+          </div>
+          <ul class="points-list bad">
+            {% if c.points_ameliorer is iterable and c.points_ameliorer is not string %}
+              {% for pt in c.points_ameliorer %}
+                <li>{{ pt }}</li>
+              {% endfor %}
+            {% elif c.points_ameliorer %}
+              <li>{{ c.points_ameliorer }}</li>
+            {% else %}
+              <li>Aucun point à améliorer identifié.</li>
+            {% endif %}
+          </ul>
+        </div>
+
+      </div>
+
+      <!-- Actions sur la candidature -->
+      <div class="statut-form">
+        <form method="POST" action="/entreprise/candidatures/{{ c.id }}/statut" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <input type="hidden" name="offre_id" value="{{ offre.id }}">
+          <select name="statut">
+            <option value="soumise"        {% if c.statut == 'soumise' %}selected{% endif %}>📥 Soumise</option>
+            <option value="vue"            {% if c.statut == 'vue' %}selected{% endif %}>👁 Vue</option>
+            <option value="présélectionnée"{% if c.statut == 'présélectionnée' %}selected{% endif %}>⭐ Présélectionnée</option>
+            <option value="entretien"      {% if c.statut == 'entretien' %}selected{% endif %}>📅 Entretien</option>
+            <option value="offre"          {% if c.statut == 'offre' %}selected{% endif %}>✅ Offre</option>
+            <option value="refusée"        {% if c.statut == 'refusée' %}selected{% endif %}>❌ Refusée</option>
+          </select>
+          <button type="submit" class="btn btn-ghost" style="padding:8px 16px;font-size:0.82rem;">
+            Mettre à jour
+          </button>
+        </form>
+        <a href="/entreprise/entretiens" class="btn btn-ghost" style="padding:8px 16px;font-size:0.82rem;">
+          <i class="fa-solid fa-calendar-plus"></i> Planifier un entretien
+        </a>
+      </div>
+
+    </div><!-- fin detail-panel -->
+
+    {% endfor %}
+
+  </div><!-- fin ranking-table -->
+
+{% else %}
+
+  <div class="card">
+    <div class="matching-empty">
+      <i class="fa-solid fa-users"></i>
+      <h3>Aucun candidat pour cette offre</h3>
+      <p>Les candidats apparaîtront ici dès qu'ils postuleront à cette offre.</p>
+    </div>
+  </div>
+
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+function toggleDetail(idx) {
+  var panel  = document.getElementById('detail-' + idx);
+  var row    = document.getElementById('row-' + idx);
+  var isOpen = panel.classList.contains('open');
+
+  document.querySelectorAll('.detail-panel').forEach(p => p.classList.remove('open'));
+  document.querySelectorAll('.ranking-row').forEach(r => r.classList.remove('open'));
+
+  if (!isOpen) {
+    panel.classList.add('open');
+    row.classList.add('open');
+    setTimeout(() => row.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
+  }
+}
+</script>
+{% endblock %}

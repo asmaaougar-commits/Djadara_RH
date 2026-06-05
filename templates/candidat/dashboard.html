@@ -1,0 +1,61 @@
+{% extends "candidat/base.html" %}
+{% block title %}Dashboard Candidat — Yassir RH{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Bonjour {{ candidat.prenom }} 👋</h1>
+    <p>Votre espace candidat</p>
+  </div>
+  
+ <a class="btn btn-primary" href="{{ url_for('candidat_upload_cv') }}">
+  <i class="fa-solid fa-upload"></i> Déposer / Mettre à jour mon CV
+ </a>
+    
+</div>
+
+{% with msgs = get_flashed_messages(with_categories=true) %}
+  {% if msgs %}
+    <div style="margin-bottom:12px;">
+      {% for cat,msg in msgs %}
+        <div style="font-size:0.9rem;color:#64748B;">{{ msg }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
+<h3 style="margin:18px 0 10px;">Vos candidatures récentes</h3>
+{% if candidatures %}
+  <div style="display:flex;flex-direction:column;gap:10px;">
+    {% for ca in candidatures %}
+      <div style="background:rgba(255,255,255,0.95);border:1px solid rgba(226,232,240,1);border-radius:14px;padding:14px 16px;">
+        <div style="font-weight:800;color:#0F172A;">{{ ca.offre_titre }}</div>
+        <div style="color:#64748B;font-size:0.85rem;margin-top:4px;">
+          {{ ca.entreprise_nom }} • {{ ca.type_contrat }} • {{ ca.localisation }}
+        </div>
+        <div style="margin-top:8px;color:#10B981;font-weight:700;font-size:0.85rem;">
+          Score: {{ ca.score_global }}/100 • Statut: {{ ca.statut }} • Rang: {{ ca.rang }}
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="card"><div style="text-align:center;padding:28px 16px;color:#64748B;">Aucune candidature pour le moment.</div></div>
+{% endif %}
+
+<h3 style="margin:22px 0 10px;">Notifications</h3>
+{% if notifs %}
+  <div style="display:flex;flex-direction:column;gap:10px;">
+    {% for n in notifs %}
+      <div style="background:rgba(255,255,255,0.95);border:1px solid rgba(226,232,240,1);border-radius:14px;padding:14px 16px;">
+        <div style="font-weight:800;color:#0F172A;">{{ n.titre }}</div>
+        <div style="color:#64748B;font-size:0.9rem;margin-top:4px;">{{ n.message }}</div>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="card"><div style="text-align:center;padding:28px 16px;color:#64748B;">Aucune notification.</div></div>
+{% endif %}
+
+{% endblock %}
+

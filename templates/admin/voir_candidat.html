@@ -1,0 +1,34 @@
+{% extends "admin/base.html" %}
+{% block title %}Candidat — Yassir RH{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>{{ candidat.prenom }} {{ candidat.nom }}</h1>
+    <p>{{ candidat.email }}</p>
+  </div>
+</div>
+
+<div class="card" style="max-width:980px;margin:0 auto;">
+  <div style="display:flex;flex-direction:column;gap:10px;">
+    <div><b>CV :</b> {{ candidat.cv_fichier or '—' }}</div>
+    <div><b>Compétences (IA) :</b></div>
+    <div style="color:#475569;">{{ candidat.competences }}</div>
+  </div>
+</div>
+
+<h3 style="margin:22px auto 10px;max-width:980px;">Candidatures</h3>
+{% if candidatures %}
+  <div style="max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:12px;">
+    {% for ca in candidatures %}
+      <div style="background:rgba(255,255,255,0.95);border:1px solid rgba(226,232,240,1);border-radius:14px;padding:16px 18px;">
+        <div style="font-weight:900;color:#0F172A;">{{ ca.offre_titre }}</div>
+        <div style="color:#64748B;font-size:0.9rem;margin-top:4px;">Score: {{ ca.score_global }}/100 • Rang: {{ ca.rang }} • Statut: {{ ca.statut }}</div>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="card"><div style="text-align:center;padding:48px 16px;color:#64748B;max-width:980px;margin:0 auto;">Aucune candidature.</div></div>
+{% endif %}
+{% endblock %}
+

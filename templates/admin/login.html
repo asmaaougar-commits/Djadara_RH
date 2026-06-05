@@ -1,0 +1,256 @@
+{% extends "base_public.html" %}
+
+{% block title %}Connexion Admin — Djadara RH{% endblock %}
+
+{% block head %}
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:    #0D1117;
+  --paper:  #F7F6F2;
+  --accent: #C8F04B;
+  --muted:  #6B7280;
+  --border: #E2E0D8;
+  --white:  #FFFFFF;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--paper);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 16px;
+  position: relative;
+}
+body::before {
+  content: '';
+  position: fixed;
+  top: -120px; right: -120px;
+  width: 420px; height: 420px;
+  background: radial-gradient(circle, rgba(200,240,75,0.18) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+body::after {
+  content: '';
+  position: fixed;
+  bottom: -100px; left: -100px;
+  width: 340px; height: 340px;
+  background: radial-gradient(circle, rgba(13,17,23,0.06) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+.card {
+  background: var(--white);
+  border-radius: 24px;
+  width: 100%;
+  max-width: 440px;
+  box-shadow: 0 2px 40px rgba(0,0,0,0.10);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  animation: slideUp 0.5s cubic-bezier(.22,1,.36,1) both;
+}
+@keyframes slideUp {
+  from { opacity:0; transform: translateY(28px); }
+  to   { opacity:1; transform: translateY(0); }
+}
+.card-header {
+  background: var(--ink);
+  padding: 30px 36px 26px;
+  position: relative;
+  overflow: hidden;
+}
+.card-header::after {
+  content: '';
+  position: absolute;
+  bottom: -30px; right: -30px;
+  width: 120px; height: 120px;
+  background: var(--accent);
+  border-radius: 50%;
+  opacity: 0.15;
+}
+.brand {
+  display: flex; align-items: center; gap: 11px;
+  margin-bottom: 18px;
+}
+.brand-logo {
+  width: 36px; height: 36px;
+  background: var(--accent);
+  border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Syne', sans-serif;
+  font-weight: 800; font-size: 16px;
+  color: var(--ink);
+}
+.brand-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 14px; color: var(--white); }
+.brand-sub  { font-size: 10px; color: rgba(255,255,255,0.4); letter-spacing: 0.08em; text-transform: uppercase; }
+.card-header h1 {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800; font-size: 24px;
+  color: var(--white); margin-bottom: 3px;
+}
+.card-header p { font-size: 13px; color: rgba(255,255,255,0.45); }
+.back-link {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 12px; color: rgba(255,255,255,0.4);
+  text-decoration: none; margin-bottom: 14px;
+  transition: color 0.2s;
+}
+.back-link:hover { color: var(--white); }
+
+/* Badge admin */
+.admin-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(200,240,75,0.15);
+  border: 1px solid rgba(200,240,75,0.35);
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 11px; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 14px;
+}
+
+.card-body { padding: 28px 36px 32px; }
+
+.alert {
+  padding: 11px 14px;
+  border-radius: 10px;
+  font-size: 13px; font-weight: 500;
+  margin-bottom: 18px;
+  display: flex; align-items: center; gap: 8px;
+}
+.alert-danger  { background:#FEE2E2; color:#B91C1C; border-left:3px solid #EF4444; }
+.alert-success { background:#D1FAE5; color:#065F46; border-left:3px solid #22C55E; }
+.alert-warning { background:#FEF3C7; color:#92400E; border-left:3px solid #F59E0B; }
+.alert-info    { background:#DBEAFE; color:#1E40AF; border-left:3px solid #3B82F6; }
+
+.form-group { margin-bottom: 16px; }
+.form-group label {
+  display: block;
+  font-size: 11px; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 7px;
+}
+.form-group input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px; color: var(--ink);
+  background: var(--paper);
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.form-group input:focus {
+  border-color: var(--ink);
+  background: var(--white);
+  box-shadow: 0 0 0 3px rgba(13,17,23,0.06);
+}
+.form-group input::placeholder { color: #B0ADA6; }
+
+.security-note {
+  display: flex; align-items: center; gap: 8px;
+  background: rgba(200,240,75,0.08);
+  border: 1px solid rgba(200,240,75,0.3);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 12px; color: #5A6B00;
+  margin-bottom: 20px;
+}
+
+.btn-submit {
+  width: 100%;
+  padding: 13px;
+  background: var(--ink);
+  color: var(--white);
+  border: none; border-radius: 12px;
+  font-family: 'Syne', sans-serif;
+  font-size: 14px; font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 18px;
+  position: relative; overflow: hidden;
+}
+.btn-submit::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s cubic-bezier(.22,1,.36,1);
+  z-index: 0;
+}
+.btn-submit:hover::after { transform: scaleX(1); }
+.btn-submit span { position: relative; z-index: 1; }
+.btn-submit:hover span { color: var(--ink); }
+
+.footer-text {
+  text-align: center; font-size: 13px; color: var(--muted);
+}
+.footer-text a {
+  color: var(--ink); font-weight: 600; text-decoration: none;
+  border-bottom: 1.5px solid var(--accent); padding-bottom: 1px;
+}
+.footer-text a:hover { color: var(--muted); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+
+  <div class="card-header">
+    <a href="{{ url_for('login') }}" class="back-link">← Retour connexion</a>
+    <div class="brand">
+      <div class="brand-logo">D</div>
+      <div>
+        <div class="brand-name">Djadara RH</div>
+        <div class="brand-sub">Recrutement Intelligent</div>
+      </div>
+    </div>
+    <div class="admin-badge">⚙ Espace Administrateur</div>
+    <h1>Connexion Admin</h1>
+    <p>Accès réservé à l'administrateur plateforme</p>
+  </div>
+
+  <div class="card-body">
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+      {% endfor %}
+    {% endwith %}
+
+    <form action="{{ url_for('admin_login') }}" method="POST">
+
+      <div class="form-group">
+        <label>Email administrateur</label>
+        <input type="email" name="email" placeholder="admin@djadara.com" required autofocus>
+      </div>
+
+      <div class="form-group">
+        <label>Mot de passe</label>
+        <input type="password" name="password" placeholder="••••••••" required>
+      </div>
+
+      <div class="security-note">
+        🔒 Accès sécurisé — cette page est réservée à l'administration de la plateforme.
+      </div>
+
+      <button type="submit" class="btn-submit">
+        <span>Accéder au panneau admin →</span>
+      </button>
+
+    </form>
+
+    <p class="footer-text">
+      <a href="{{ url_for('login') }}">← Retour à la connexion normale</a>
+    </p>
+
+  </div>
+</div>
+{% endblock %}
