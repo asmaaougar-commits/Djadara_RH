@@ -460,7 +460,10 @@ def register():
                 f"Si vous n'êtes pas à l'origine de cette inscription, ignorez cet email.\n\n"
                 f"— L'équipe Djadara RH"
             )
-            mail.send(msg)
+            try:
+               mail.send(msg)
+            except Exception as mail_error:
+                print(f"Error sending email: {mail_error}")
 
             session['pending_email'] = email
             session['pending_role']  = role
