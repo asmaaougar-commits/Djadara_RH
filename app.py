@@ -736,7 +736,12 @@ def resend_code():
         conn.commit()
         msg = Message("Votre nouveau code de vérification — Djadara RH", recipients=[email])
         msg.body = f"Votre nouveau code de vérification est :\n\n  {nouveau_code}\n\nCe code est valable 24h."
-        mail.send(msg)
+        try : 
+         mail.send(msg)
+        except Exception as mail_error:
+         print(f"Error sending email: {mail_error}")
+         flash("Erreur lors de l'envoi de l'email. Veuillez réessayer plus tard.", "danger")
+         return redirect(url_for('verify_code'))
         flash("Un nouveau code a été envoyé à votre adresse email.", "info")
     except Exception as e:
         conn.rollback()
