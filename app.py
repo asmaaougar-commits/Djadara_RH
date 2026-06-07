@@ -741,7 +741,7 @@ def resend_code():
         except Exception as mail_error:
          print(f"Error sending email: {mail_error}")
          flash("Erreur lors de l'envoi de l'email. Veuillez réessayer plus tard.", "danger")
-         return redirect(url_for('verify_code'))
+         
         flash("Un nouveau code a été envoyé à votre adresse email.", "info")
     except Exception as e:
         conn.rollback()
